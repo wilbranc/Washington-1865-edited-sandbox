@@ -1,0 +1,152 @@
+title: sandbox
+new-page: true
+is-special: true
+is-hand: true
+go-to: sandbox_menu
+
+= Sandbox Menu
+
+@sandbox_menu
+
+- @clear_hand: Clear Cards
+- @make_adv_available: Make Advisors Available
+- @editresources: Edit Resources
+- @editbudget: Edit Budget
+- @backSpecialScene: Exit Sandbox Menu
+
+@clear_hand
+go-to: sandbox_menu
+on-arrival: {!
+Q.advisor_action_timer = 6;
+if (Q.difficulty >= 0) {
+    window.dendryUI.dendryEngine.state.currentHands['main'] = [];
+} else {
+    window.dendryUI.dendryEngine.state.currentHands['main.main_easy'] = [];
+}
+!}
+
+Cleared all cards.
+
+@make_adv_available
+go-to: sandbox_menu
+on-arrival: {!
+Q.advisor_action_timer = 0;
+!}
+
+Made advisor actions available.
+
+@editresources
+
+- @add10resources: Add 10 Resources
+- @add20resources: Add 20 Resources
+- @add100resources: Add 100 Resources
+- @subtract10resources: Subtract 10 Resources
+- @subtract20resources: Subtract 20 Resources
+- @subtract100resources: Subtract 100 Resources
+- @returnsandbox: Return To Sandbox
+
+@add10resources
+go-to: sandbox_menu
+on-arrival: {!
+Q.resources += 10;
+!}
+
+Added 10 resources to the party's stockpile.
+
+@add20resources
+go-to: sandbox_menu
+on-arrival: {!
+Q.resources += 20;
+!}
+
+Added 20 resources to the party's stockpile.
+
+@add100resources
+go-to: sandbox_menu
+on-arrival: {!
+Q.resources += 100;
+!}
+
+Added 100 resources to the party's stockpile, stop being greedy.
+
+@subtract10resources
+go-to: sandbox_menu
+on-arrival: {!
+Q.resources -= 10;
+!}
+
+Removed 10 resources from the party's stockpile.
+
+@subtract20resources
+go-to: sandbox_menu
+on-arrival: {!
+Q.resources -= 20;
+!}
+
+Removed 20 resources from the party's stockpile.
+
+@subtract100resources
+go-to: sandbox_menu
+on-arrival: {!
+Q.resources -= 100;
+!}
+
+Removed 100 resources from the party's stockpile. This doesn't go to the homeless or anything, why would you do this?
+
+@editbudget
+
+- @add10budget: Add 10 Budget
+- @add20budget: Add 20 Budget
+- @add100budget: Add 100 Budget
+- @subtract10budget: Subtract 10 Budget
+- @subtract20budget: Subtract 20 Budget
+- @subtract100budget: Subtract 100 Budget
+- @returnsandbox: Return To Sandbox
+
+@add10budget
+go-to: sandbox_menu
+on-arrival: {!
+Q.budget += 10;
+!}
+
+Added 10 budget to the country's stockpile.
+
+@add20budget
+go-to: sandbox_menu
+on-arrival: {!
+Q.budget += 20;
+!}
+
+Added 20 budget to the country's stockpile.
+
+@add100budget
+go-to: sandbox_menu
+on-arrival: {!
+Q.budget += 100;
+!}
+
+Added 100 budget to the country's stockpile, stop being greedy.
+
+@subtract10budget
+go-to: sandbox_menu
+on-arrival: {!
+Q.budget -= 10;
+!}
+
+Removed 10 budget from the country's stockpile.
+
+@subtract20budget
+go-to: sandbox_menu
+on-arrival: {!
+Q.budget -= 20;
+!}
+
+Removed 20 budget from the country's stockpile.
+
+@subtract100budget
+go-to: sandbox_menu
+on-arrival: {!
+Q.budget -= 100;
+!}
+
+Removed 100 budget from the country's stockpile. This doesn't go to the homeless or anything, why would you do this?
