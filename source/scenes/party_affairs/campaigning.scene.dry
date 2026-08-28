@@ -1,0 +1,69 @@
+title: Campaigning
+new-page: true
+on-arrival: month_actions += 1
+max-visits: 36
+is-card: true
+card-image: img/Campaign.webp
+frequency: 100
+tags: party_affairs
+
+= Campaigning
+
+Whether or not we are in an electoral campaign, the party is always trying to broaden its voter base. Who should we focus our campaign efforts on?
+
+- @workers: The urban working class
+- @middle_class: The middle class of professionals and businessmen (Our traditional Base)
+- @rural: Rural farmers and Southern yeomanry.
+- @freemen: The newly emancipated freedmen.
+- @immigrant_laborers: Immigrant workers, often skeptical of Reconstruction.
+- @unemployed: The unemployed.
+- @root: We either don't want to or cannot campaign right now.
+- @easy_discard
+
+@workers
+subtitle: -1 resources
+choose-if: resources >= 1
+unavailable-subtitle: Not enough resources.
+on-arrival: workers_rep += 6 * (1 - dissent); resources -= 1;
+
+We have increased our campaigning among the workers.
+
+@middle_class
+subtitle: -1 resources
+choose-if: resources >= 1
+unavailable-subtitle: Not enough resources.
+on-arrival: middle_class_rep += 6 * (1 - dissent); resources -= 1;
+
+We have increased our campaigning among the middle class.
+
+@rural
+subtitle: -1 resources
+choose-if: resources >= 1
+unavailable-subtitle: Not enough resources.
+on-arrival: rural_rep += 5 * (1 - dissent); resources -= 1;
+
+We have increased our campaigning among farmers.
+
+@freemen
+subtitle: -1 resources
+choose-if: resources >= 1
+unavailable-subtitle: Not enough resources.
+on-arrival: freemen_rep += 8 * (1 - dissent); resources -= 1;
+
+We have increased our campaigning among the freedmen.
+
+@immigrant_laborers
+subtitle: -1 resources
+choose-if: resources >= 1
+unavailable-subtitle: Not enough resources.
+on-arrival: immigrant_laborers_rep += 4 * (1 - dissent); resources -= 1;
+
+We have increased our campaigning among immigrant workers.
+
+@unemployed
+subtitle: -1 resources
+choose-if: resources >= 1
+unavailable-subtitle: Not enough resources.
+on-arrival: unemployed_rep += 5 * (1 - dissent);resources -= 1;
+
+We have increased our campaigning among the unemployed.

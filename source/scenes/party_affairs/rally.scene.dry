@@ -1,0 +1,87 @@
+title: Political Rally
+new-page: true
+is-card: true
+tags: party_affairs
+view-if: rally_timer <= 0
+on-arrival: month_actions += 1; rally_timer = 6
+card-image: img/protest.jpg
+go-to: main_rally; dem_attack if whiteL_strength >= 6
+
+@dem_attack
+
+A mob, possibly with White League soldiers, has attacked the <span style="color: #c00000;">**Republican**</span> rally!
+
+- @police_protect: Call the police to protect our rally.
+- @unionleague_protect: Rely on the Union League to defend the rally.
+- @cancel: Cancel the rally.
+
+@police_protect
+on-arrival: police_success = Us_police_loyalty * Us_police_militancy * Us_police_strength * 2 - whitel_strength * 1.5;
+go-to: police_win if police_success >= 0; police_lose if police_success < 0
+
+@police_win
+go-to: main_rally
+
+The police successfully protected the rally. The meeting can proceed as planned.
+
+@police_lose
+on-arrival: freemen_rep -= 3; workers_rep -= 2; radical_dissent += 4; liberal_dissent += 3;
+
+The police failed to secure the rally. The attackers broke it up, undermining our presence and terrifying our supporters.
+
+@unionleague_protect
+on-arrival: ul_success = Union_League_militancy * Union_League_strength - whitel_strength * 1.5;
+go-to: ul_win if ul_success >= 0; ul_lose if ul_success < 0
+
+@ul_win
+go-to: main_rally
+
+The Union League successfully defended the rally. Their courage strengthens our movement and builds confidence among our supporters.
+
+@ul_lose
+on-arrival: freemen_rep -= 2; radical_dissent += 2; liberal_dissent += 1; Union_League_strength -= 10;
+
+The Union League fought bravely but couldn't stop the attackers. Some supporters are shaken, and the League has taken losses.
+
+@cancel
+on-arrival: radical_dissent += 3; liberal_dissent += 2; freemen_rep -= 2; unemployed_rep -= 1;
+
+We chose to cancel the rally due to the threat of violence. While it may be the safer course, many supporters are disheartened.
+
+@main_rally
+
+Mass rallies are key to building up <span style="color: #c00000;">**Republican**</span> support, especially among loyal Unionists and newly enfranchised voters. What is the main focus of this rally?
+
+- @reconstruction: Uphold Reconstruction and protect the rights of Freedmen.
+- @industry: Promote industrial growth and northern prosperity.
+- @unity: Heal the Union while upholding Republican values.
+- @law_order: Crack down on Southern violence and defend law and order.
+- @local: Address specific concerns of the local population.
+- @easy_discard: I don't care.
+
+@reconstruction
+on-arrival: freemen_rep += 5 * (1 - radical_dissent / 100); radical_strength += 3; conservative_dissent += 2; liberal_strength += 4; liberal_dissent -= 3;
+
+We speak boldly in defense of Black rights and Reconstruction. This message rallies the freedmen and radical base, but risks alienating conservatives.
+
+@industry
+on-arrival: middle_class_rep += 4; workers_rep += 2; moderate_strength += 3; liberal_strength += 2;
+
+Our focus on economic progress and industry appeals to the northern business class and industrial workers.
+
+@unity
+on-arrival: middle_class_rep += 2; rural_rep += 2; moderate_strength += 3; radical_dissent -= 2; conservative_dissent -= 2; liberal_dissent -= 2;
+
+We emphasize national unity and healing, aiming to unite former Unionists and moderates behind a stable <span style="color: #c00000;">**Republican**</span> vision.
+
+@law_order
+on-arrival: rural_rep += 3; freemen_rep += 2; conservative_strength += 3; radical_dissent -= 1; liberal_dissent -= 1;
+
+We condemn Southern terror and lawlessness. Our firm stance strengthens our image as the party of law and order.
+
+@local
+on-arrival: workers_rep += 2; unemployed_rep += 2; middle_class_rep += 1; liberal_strength += 1;
+
+We tailor our message to the specific needs of the area such as jobs, infrastructure, and fairness.
+
+@easy_discard
