@@ -1,0 +1,980 @@
+title: Post Event
+new-page: true
+on-arrival: {!
+Q.last_advisor_action = 0;
+Q.last_cabinet_action = 0;
+
+// Clamp out of bound class-party values
+for (let c of Q.classes) {
+
+    // Step 1: clamp each party
+    for (let party of Q.parties) {
+        if (Q[c + '_' + party] < 0) Q[c + '_' + party] = 0;
+        if (Q[c + '_' + party] > 100) Q[c + '_' + party] = 100;
+    }
+
+    // Step 2: calculate total
+    let total =
+        Q[c + '_rep'] +
+        Q[c + '_dem'] +
+        Q[c + '_other'];
+
+    // Step 3: scale down if over 100
+    if (total > 100) {
+        let scale = 100 / total;
+
+        Q[c + '_rep'] *= scale;
+        Q[c + '_dem'] *= scale;
+        Q[c + '_other'] *= scale;
+    }
+
+    // Optional: round to whole numbers
+    Q[c + '_rep'] = Math.round(Q[c + '_rep']);
+    Q[c + '_dem'] = Math.round(Q[c + '_dem']);
+    Q[c + '_other'] = Math.round(Q[c + '_other']);
+}
+
+// Clamp pro_republic
+Q.pro_republic = Math.min(Math.max(Q.pro_republic, 0), 99);
+
+for (let c of Q.classes) {
+    let classVotes = 0;
+    for (let party of Q.parties) classVotes += Q[c + '_' + party];
+    if (classVotes === 0) classVotes = 1; // prevent divide by zero
+    for (let party of Q.parties) {
+        let val = Q[c + '_' + party];
+        let normalized = val / classVotes;
+        Q[c + '_' + party + '_normalized'] = normalized;
+        Q[c + '_' + party + '_display'] = Math.min(100, Math.round(100 * normalized));
+    }
+}
+
+// Party support
+let totalSupport = 0;
+for (let party of Q.parties) {
+    let support = 0;
+    for (let c of Q.classes) {
+        if (Q.old_demographics) support += Q[c] * Q[c + '_' + party];
+        else support += Q[c] * Q[c + '_' + party + '_normalized'];
+    }
+    Q[party + '_support'] = support;
+    totalSupport += support;
+}
+
+// Normalize overall party support
+for (let party of Q.parties) {
+    Q[party + '_normalized'] = totalSupport ? Q[party + '_support'] / totalSupport : 1 / Q.parties.length;
+    Q[party + '_votes'] = Math.round(Q[party + '_normalized'] * 100);
+    Q[party + '_votes_display'] = Q[party + '_votes'];
+}
+
+// === House Projections ===
+let repVotesHouse = 0, demVotesHouse = 0, libVotesHouse = 0, otherVotesHouse = 0;
+
+for (let state of Q.states) {
+    for (let cls of Q.classes) {
+
+        if (cls === "freemen" && Q.fifthteen == 0) {
+            // skip freemen if 15th amendment not passed
+            continue;
+        }
+
+        let pop = Q[state + "_" + cls] || 0;
+
+        if (cls === "freemen") {
+            pop = pop * (Q.freedmen_turnout / 100);
+        }
+
+        let rep = Q[state + "_" + cls + "_rep"] || 0;
+        let dem = Q[state + "_" + cls + "_dem"] || 0;
+        let lib = Q[state + "_" + cls + "_lib"] || 0;
+        let other = Q[state + "_" + cls + "_other"] || 0;
+
+        let repMod = Q[cls + "_rep"] || 0;
+        let demMod = Q[cls + "_dem"] || 0;
+        let libMod = Q[cls + "_lib"] || 0;
+        let otherMod = Q[cls + "_other"] || 0;
+
+        let adjRep = 0.2 * rep + 0.8 * repMod;
+        let adjDem = 0.2 * dem + 0.8 * demMod;
+        let adjLib = Q.liberal_split ? (0.2 * lib + 0.8 * libMod) : 0;
+        let adjOther = 0.2 * other + 0.8 * otherMod;
+
+        let totalPct = adjRep + adjDem + adjLib + adjOther;
+        if (totalPct === 0) continue;
+
+        repVotesHouse += pop * (adjRep / totalPct);
+        demVotesHouse += pop * (adjDem / totalPct);
+        libVotesHouse += pop * (adjLib / totalPct);
+        otherVotesHouse += pop * (adjOther / totalPct);
+    }
+}
+
+// Cube law proportional allocation (matches house_election.scene.dry)
+let totalVotesHouse = repVotesHouse + demVotesHouse + libVotesHouse + otherVotesHouse;
+if (totalVotesHouse === 0) totalVotesHouse = 1; // prevent NaN
+
+let repShareHouse = repVotesHouse / totalVotesHouse;
+let demShareHouse = demVotesHouse / totalVotesHouse;
+let libShareHouse = libVotesHouse / totalVotesHouse;
+let otherShareHouse = otherVotesHouse / totalVotesHouse;
+
+let repPowerHouse = Math.pow(repShareHouse, 3);
+let demPowerHouse = Math.pow(demShareHouse, 3);
+let libPowerHouse = Q.liberal_split ? Math.pow(libShareHouse, 3) : 0;
+let otherPowerHouse = Math.pow(otherShareHouse, 3);
+
+let powerTotalHouse = repPowerHouse + demPowerHouse + libPowerHouse + otherPowerHouse;
+if (powerTotalHouse === 0) powerTotalHouse = 1;
+
+// Same per-year seat totals as the real House election
+let totalSeatsHouse;
+if (Q.year <= 1866) {
+    totalSeatsHouse = Q.house_total_seat_1866;
+} else if (Q.year <= 1868) {
+    totalSeatsHouse = Q.house_total_seat_1868;
+} else if (Q.year <= 1870) {
+    totalSeatsHouse = Q.house_total_seat_1870;
+} else if (Q.year <= 1872) {
+    totalSeatsHouse = Q.house_total_seat_1872;
+} else if (Q.year <= 1874) {
+    totalSeatsHouse = Q.house_total_seat_1874;
+} else {
+    totalSeatsHouse = Q.house_total_seat_1876;
+}
+totalSeatsHouse = totalSeatsHouse || Q.total_house_seats || 241;
+
+Q.rep_r_pro = Math.floor((repPowerHouse / powerTotalHouse) * totalSeatsHouse);
+Q.dem_r_pro = Math.floor((demPowerHouse / powerTotalHouse) * totalSeatsHouse);
+Q.lib_r_pro = Q.liberal_split ? Math.floor((libPowerHouse / powerTotalHouse) * totalSeatsHouse) : 0;
+Q.other_r_pro = totalSeatsHouse - Q.rep_r_pro - Q.dem_r_pro - Q.lib_r_pro;
+
+// === Senate Projections ===
+Q.rep_senate_pro = 0;
+Q.dem_senate_pro = 0;
+Q.lib_senate_pro = 0;
+Q.other_senate_pro = 0;
+
+for (let state of Q.states) {
+    let repVotes = 0; demVotes = 0, libVotes = 0, otherVotes = 0;
+
+    for (let cls of Q.classes) {
+
+        if (cls === "freemen" && Q.fifthteen == 0) {
+            continue;
+        }
+
+        let pop = Q[state + "_" + cls] || 0;
+
+        if (cls === "freemen") {
+            pop = pop * (Q.freedmen_turnout / 100);
+        }
+
+        let localRep = Q[state + "_" + cls + "_rep"] || 0;
+        let localDem = Q[state + "_" + cls + "_dem"] || 0;
+        let localLib = Q[state + "_" + cls + "_lib"] || 0;
+        let localOther = Q[state + "_" + cls + "_other"] || 0;
+
+        let nationalRep = Q[cls + "_rep"] || 0;
+        let nationalDem = Q[cls + "_dem"] || 0;
+        let nationalLib = Q[cls + "_lib"] || 0;
+        let nationalOther = Q[cls + "_other"] || 0;
+
+        let adjRep = 0.8 * localRep + 0.2 * nationalRep;
+        let adjDem = 0.8 * localDem + 0.2 * nationalDem;
+        let adjLib = Q.liberal_split ? (0.8 * localLib + 0.2 * nationalLib) : 0;
+        let adjOther = 0.8 * localOther + 0.2 * nationalOther;
+
+        let total = adjRep + adjDem + adjLib + adjOther;
+        if (total === 0) continue;
+
+        repVotes += pop * (adjRep / total);
+        demVotes += pop * (adjDem / total);
+        libVotes += pop * (adjLib / total);
+        otherVotes += pop * (adjOther / total);
+    }
+
+    let totalVotes = repVotes + demVotes + libVotes + otherVotes;
+    if (totalVotes === 0) continue;
+
+    let repPct = (repVotes / totalVotes) * 100;
+    let demPct = (demVotes / totalVotes) * 100;
+    let libPct = (libVotes / totalVotes) * 100;
+    let otherPct = (otherVotes / totalVotes) * 100;
+
+    let results = [
+        { party: "rep", pct: repPct },
+        { party: "dem", pct: demPct },
+        { party: "other", pct: otherPct }
+    ];
+    if (Q.liberal_split) {
+        results.push({ party: "lib", pct: libPct });
+    }
+    results.sort((a, b) => b.pct - a.pct);
+
+    let first = results[0], second = results[1];
+    let repSeats = 0, demSeats = 0, libSeats = 0, otherSeats = 0;
+
+    function addSeatPro(party) {
+        if (party === "rep") repSeats++;
+        else if (party === "dem") demSeats++;
+        else if (party === "lib") libSeats++;
+        else otherSeats++;
+    }
+
+    if (first.pct >= 66 || (first.pct >= 55 && first.pct - second.pct > 10)) {
+        addSeatPro(first.party);
+        addSeatPro(first.party);
+    } else if (first.pct - second.pct <= 12) {
+        addSeatPro(first.party);
+        addSeatPro(second.party);
+    } else {
+        addSeatPro(first.party);
+        addSeatPro(first.party);
+    }
+
+    Q.rep_senate_pro += repSeats;
+    Q.dem_senate_pro += demSeats;
+    Q.lib_senate_pro += libSeats;
+    Q.other_senate_pro += otherSeats;
+}
+
+// set faction strength/dissent to 0
+for (var c of Q.factions) {
+    if (Q[c+'_dissent'] < 0) {
+        Q[c+'_dissent'] = 0;
+    } else if (Q[c+'_dissent'] >= 100) {
+        Q[c+'_dissent'] = 99;
+    }
+    if (Q[c+'_strength'] < 0) {
+        Q[c+'_strength'] = 0;
+    }
+}
+
+if (Q.unemployed <= 1) {
+    Q.unemployed = 1;
+}
+
+// re-calculate dissent.
+var total_strength = Q.radical_strength + Q.moderate_strength + Q.conservative_strength + Q.liberal_strength;
+
+// Prevent division by zero
+if (total_strength <= 0) {
+    Q.radical_strength = 25;
+    Q.moderate_strength = 25;
+    Q.conservative_strength = 25;
+    Q.liberal_strength = 25;
+    total_strength = 100;
+} else {
+    Q.radical_strength = 100 * Q.radical_strength / total_strength;
+    Q.moderate_strength = 100 * Q.moderate_strength / total_strength;
+    Q.conservative_strength = 100 * Q.conservative_strength / total_strength;
+    Q.liberal_strength = 100 * Q.liberal_strength / total_strength;
+}
+
+var total_dissent = Q.radical_strength*Q.radical_dissent + Q.moderate_strength*Q.moderate_dissent + Q.conservative_strength* Q.conservative_dissent + Q.liberal_strength*Q.liberal_dissent;
+
+
+Q.dissent = 0.01*total_dissent/total_strength;
+Q.dissent_percent = Q.dissent*100;
+console.log('new dissent: ' + Q.dissent);
+
+if (Q.dissent < 0) {
+    Q.dissent = 0;
+} else if (Q.dissent > 0.95) {
+    Q.dissent = 0.95;
+}
+
+let radicalPressure = Math.max(2, (Q.radical_strength - 25) / 25);
+let liberalPull = Math.max(0, (Q.liberal_strength - 10) / 10);
+let gopDissentPressure = Math.max(0, ((Q.dissent_percent || 0) - 30) / 30);
+let redeemerMuscle = ((Q.kkk_strength || 0) + (Q.whiteL_strength || 0)) / 400;
+let economicCrisis = Math.max(0, (2 - Q.economic_growth) / 2);
+let moderatePresidentialBoost = (Q.president_party === "rep" && Q.moderate_strength >= 40) ? 0.08 : 0;
+
+let bourbonMonthlyGain = (0.15 * radicalPressure) + (0.06 * redeemerMuscle);
+let reformMonthlyGain = (0.10 * liberalPull) + (0.08 * gopDissentPressure) + (0.12 * economicCrisis) + moderatePresidentialBoost;
+
+Q.dem_bourbon_strength += bourbonMonthlyGain;
+Q.dem_reform_strength += reformMonthlyGain;
+
+if (redeemerMuscle > 0.5) {
+    Q.dem_bourbon_dissent = Math.max(0, Q.dem_bourbon_dissent - 0.05);
+}
+if (radicalPressure > 1) {
+    Q.dem_bourbon_dissent = Math.max(0, Q.dem_bourbon_dissent - 0.03);
+}
+if (gopDissentPressure > 0.5) {
+    Q.dem_reform_dissent = Math.max(0, Q.dem_reform_dissent - 0.03);
+}
+if(Q.year >= 1871)
+{
+    Q.dem_reform_strength += 3/12;
+}
+
+Q.dem_reform_strength = Math.max(0, Q.dem_reform_strength);
+Q.dem_bourbon_strength = Math.max(0, Q.dem_bourbon_strength);
+
+Q.Base_Support = 0.35 * Q.freemen_rep + 0.20 * Q.workers_rep + 0.20* Q.middle_class_rep + 0.15 * Q.immigrant_laborers_rep + 0.10 * Q.unemployed_rep;
+
+Q.ViolencePenalty = Math.min(30, (Q.kkk_strength / 1000) * Q.kkk_militancy * 20  + (Q.whiteL_strength / 1000) * Q.whiteL_militancy * 30);
+
+Q.FatiguePenalty = Math.min(Q.year - 1865, 10);
+
+Q.reconstruction_support = Q.Base_Support - Q.ViolencePenalty - Q.FatiguePenalty - Math.min(Q.PoliticalCostPenalty * 0.25, 15);
+
+
+//Amendments 
+
+let supportiveStates = 0;
+let totalStates = Q.states.length;
+
+for (let state of Q.states) {
+  let repVotes = 0;
+  let demVotes = 0;
+  let libVotes = 0;
+  let otherVotes = 0;
+
+  for (let cls of Q.classes) {
+    
+    if (cls === "freemen" && Q.fifthteen == 0){
+        // skip freemen if 15th amendment not passed
+    }
+    else{
+        let pop = Q[state + "_" + cls] || 0;
+
+        if (cls === "freemen") {
+            let suppressionRate = Math.min(
+                ((Q.ViolencePenalty || 0) / 30) +
+                ((Q.whiteL_strength / 100) * Q.whiteL_militancy * 0.35),
+                1
+            );
+            pop = pop * (1 - suppressionRate);
+        }
+
+        let rep = Q[state + "_" + cls + "_rep"] || 0;
+        let dem = Q[state + "_" + cls + "_dem"] || 0;
+        let lib   = Q[state + "_" + cls + "_lib"]   || 0;
+        let other = Q[state + "_" + cls + "_other"] || 0;
+
+        let repMod = Q[cls + "_rep"] || 0;
+        let demMod = Q[cls + "_dem"] || 0;
+        let libMod   = Q[cls + "_lib"]   || 0;
+        let otherMod = Q[cls + "_other"] || 0;
+
+        let adjRep = 0.2 * rep + 0.8 * repMod;
+        let adjDem = 0.2 * dem + 0.8 * demMod;
+        let adjLib   = Q.liberal_split ? (0.2 * lib + 0.8 * libMod) : 0;
+        let adjOther = 0.2 * other + 0.8 * otherMod;
+
+        let totalAdj = adjRep + adjDem + adjLib + adjOther;
+        if (!totalAdj) continue;
+
+        repVotes += pop * (adjRep / totalAdj);
+        demVotes += pop * (adjDem / totalAdj);
+        libVotes += pop * (adjLib / totalAdj);
+        otherVotes += pop * (adjOther / totalAdj);
+    }
+  }
+
+  if (repVotes > demVotes && repVotes > otherVotes) {
+    supportiveStates++;
+  }
+}
+
+// 3/4 state threshold
+let requiredStates = Math.ceil(0.75 * totalStates);
+
+
+Q.amendmentResult = (supportiveStates >= requiredStates) ? 1 : 0;
+
+
+for (let state of Q.southern_states) {
+
+  // --- Calculate white loyalty ---
+  let white_loyalty = 0;
+  let white_pop = 0;
+
+  for (let cls of Q.classes) {
+    if (cls === "freemen") continue;
+
+    let pop = Q[state + "_" + cls] || 0;
+    let repPct = (Q[state + "_" + cls + "_rep"] || 0) / 100;
+
+    white_loyalty += pop * repPct;
+    white_pop += pop;
+  }
+
+  if (white_pop > 0) {
+    white_loyalty = (white_loyalty / white_pop) * 100;
+  }
+
+  // --- Enforcement & resistance (GLOBAL variables) ---
+  let occupation = Q.occupation || 0;
+  let judicial = Q.judicial_reform || 0;
+  let kkk = Q.kkk_strength || 0;
+  let whiteL = Q.whiteL_strength || 0;
+  let unionLeague = Q.Union_League_strength || 0;
+
+  if (Q.Union_League_strength > 0 && Q.whiteL_formed == 1 && Q.whiteL_strength > 0) {
+    Q.whiteL_strength -= (Q.Union_League_strength / 1000) * Q.Union_League_militancy;
+  }
+
+  // --- Resistance Suppression Logic ---
+  let normalizedResistance = ((kkk + whiteL) / 2) / 1000;
+  let suppression_modifier = Math.max(0, normalizedResistance * (1 - (white_loyalty / 100)) * 20);
+
+  // --- State loyalty ---
+  let state_loyalty = white_loyalty + (occupation * 5) + judicial - (normalizedResistance * 5);
+
+  // Amendment loyalty bonus
+  if (Q.fortheen_A == 1) state_loyalty += 5;
+  if (Q.fifthteen == 1)  state_loyalty += 3;
+
+  state_loyalty = Math.max(0, Math.min(100, Math.round(state_loyalty)));
+  Q[state + "_loyalty"] = state_loyalty;
+
+  // --- Race equality support ---
+  let unionLeagueEffect = Math.min(100, (unionLeague / 500) * 100);
+
+  let raceEqualitySupport = (Q.freedmen_education * 0.40) + (unionLeagueEffect * 0.30) + (occupation * 10) + (judicial * 2) + (Q.civil_rights * 0.35) - suppression_modifier;
+
+  // Amendment equality bonus
+  raceEqualitySupport += 5;
+  if (Q.fortheen_A == 1) raceEqualitySupport += 8;
+  if (Q.fifthteen == 1)  raceEqualitySupport += 9;
+
+  raceEqualitySupport = Math.max(0, Math.min(100, Math.round(raceEqualitySupport)));
+  Q[state + "_raceEqualitySupport"] = raceEqualitySupport;
+
+  // --- Reconstruction score ---
+  let score = 0;
+  let threshold = 0;
+  let planName = "";
+
+  if (Q.Johnson_plan === 1) {
+    threshold = 20;
+    planName = "Johnson";
+  }
+  else if (Q.Moderate_plan === 1) {
+    threshold = 35;
+    planName = "Moderate";
+  }
+  else if (Q.Radical_plan === 1) {
+    threshold = 50;
+    planName = "Radical";
+  }
+
+  let loyaltyWeight  = Q.Radical_plan ? 0.40 : 0.55;
+  let equalityWeight = Q.Radical_plan ? 0.60 : 0.45;
+
+  score = (state_loyalty * loyaltyWeight) + (raceEqualitySupport * equalityWeight);
+
+  score = Math.max(0, Math.min(100, Math.round(score)));
+  Q[state + "_reconstructionScore"] = score;
+
+  // Track the best score this state has ever reached, so a temporary
+  // backslide (KKK suppression spike, etc.) doesn't erase earned progress.
+  Q[state + "_reconstructionScoreBest"] = Math.max(Q[state + "_reconstructionScoreBest"] || 0, score);
+
+  Q[state + "_canReadmit"] = (Q[state + "_readmit_forced"] == 1) ? 1 : (Q[state + "_reconstructionScoreBest"] >= threshold ? 1 : 0);
+
+  // --- Percent relative to plan difficulty ---
+  if (threshold > 0) {
+    Q[state + "_percentOfThreshold"] = Math.min(100, Math.round((score / threshold) * 100));
+  } else {
+    Q[state + "_percentOfThreshold"] = 0;
+  }
+
+  Q[state + "_planName"] = planName;
+
+}
+
+if ((Q.house_majority === 3 || Q.house_majority === 2) && (Q.sen_majority === 3 || Q.sen_majority === 2)) {
+    Q.rep_majority = 1;
+} else {
+    Q.rep_majority = 0;
+}
+
+
+if (Q.fifthteen == 0) {
+    Q.freedmen_turnout = 0;
+} else {
+    let registrationRate = Math.min(1,
+        0.20
+        + (((Q.South_army_strength) + (Q.Union_League_strength * 0.5)) / 20) * 0.25
+        + (Q.freedmen_education / 100) * 0.55
+    );
+
+    let rawSuppression = Math.min(1, (Q.ViolencePenalty || 0) / 30);
+    let suppressionResistance = Math.min(0.5,
+        (Q.freedmen_education / 100) * 0.25
+        + ((Q.occupation || 0) / 3) * 0.25
+    );
+    let effectiveSuppression = Math.max(0, rawSuppression - suppressionResistance);
+
+    Q.freedmen_turnout = Math.max(0, Math.min(100,
+        Math.round(registrationRate * (1 - effectiveSuppression) * 100)
+    ));
+}
+
+// 1. update dates
+if (Q.month_actions >= 1) {
+    Q.time += 1;
+    Q.month_actions = 0;
+    Q.month += 1;
+    if (Q.month >= 13) {
+        Q.month = 1;
+        Q.year += 1;
+        if (Q.limit < 1){
+            Q.limit = 1;
+        }
+        if (Q.historical_mode) {
+            Q.resources += 2;
+        }
+    }
+    // decrement timers
+    for (let timer of Q.timers) {
+        if (Q[timer +'_timer'] && Q[timer +'_timer'] > 0) {
+            Q[timer +'_timer'] -= 1;
+            if (timer === Q.speaker_boosted_committee && Q[timer +'_timer'] > 0) {
+                Q[timer +'_timer'] -= Q.speaker_boost_amount;
+                if (Q[timer +'_timer'] < 0) Q[timer +'_timer'] = 0;
+            }
+        }
+    }
+    // append to historical party support records
+    // append to historical party support records (House seat share %)
+    var party_support_results = {'date': new Date(Q.year, Q.month - 1)};
+    party_support_results['rep'] = totalSeatsHouse ? (Q.rep_r_pro / totalSeatsHouse) * 100 : 0;
+    party_support_results['dem'] = totalSeatsHouse ? (Q.dem_r_pro / totalSeatsHouse) * 100 : 0;
+    party_support_results['lib'] = totalSeatsHouse ? (Q.lib_r_pro / totalSeatsHouse) * 100 : 0;
+    party_support_results['other'] = totalSeatsHouse ? (Q.other_r_pro / totalSeatsHouse) * 100 : 0;
+    Q.party_support_records.push(party_support_results);
+    if (Q.unemployment_rate === undefined) Q.unemployment_rate = 6;
+    if (Q.unemployed_baseline === undefined) Q.unemployed_baseline = Q.unemployed;
+    for (let state of Q.states) {
+        if (Q[state + "_unemployed_baseline"] === undefined) {
+            Q[state + "_unemployed_baseline"] = Q[state + "_unemployed"] || 0;
+        }
+    }
+    Q.economic_records.push({date: new Date(Q.year, Q.month - 1),inflation: Q.inflation,unemployment: Q.unemployment_rate, growth: Q.economic_growth});
+
+    let inflationDrift = 0;
+    if (Q.GreenBacks == 1) {
+        inflationDrift += 0.03;
+        inflationDrift += (Q.economic_expansion / 100) * 0.08; // credit bubble accelerates it
+    } else {
+        inflationDrift -= 0.05; // gold standard drifts toward deflation on its own
+    }
+    inflationDrift += (Q.tariffs || 0) * 0.01; // small secondary effect from consumer prices
+    Q.inflation = Math.max(-8, Math.min(12, Q.inflation + inflationDrift));
+
+    let expansionDrift = 0;
+    if (Q.economic_growth >= 2) expansionDrift += 0.4;
+    if (Q.GreenBacks == 1) expansionDrift += 0.2;
+    if ((Q.tariffs || 0) <= 0) expansionDrift += 0.1;
+    if (Q.GreenBacks == 0) expansionDrift -= 0.3; // hard money bleeds off speculation
+    Q.economic_expansion = Math.max(0, Q.economic_expansion + expansionDrift);
+
+    // rather than a hard date-based tripwire
+    if (Q.economic_expansion >= 60 && Q.panic_triggered != 1) {
+        let panicChance = (Q.economic_expansion - 60) * 0.015;
+        if (Math.random() < panicChance) {
+            Q.panic_triggered = 1;
+            Q.panic_pending = 1;
+        }
+    }
+
+    if (Q.economic_growth >= 4 && Q.inflation >= 7.5) Q.economic_growth -= 0.15;
+    if (Q.economic_growth >= -2.5 && Q.inflation <= -5) Q.economic_growth -= 0.15;
+    if (Q.economic_growth >= 7) Q.economic_growth -= 0.1;
+    if (Q.economic_growth >= 10) Q.economic_growth -= 0.2;
+    if (Q.economic_growth <= -7) Q.economic_growth += 0.1;
+    if (Q.economic_growth <= -10) Q.economic_growth += 0.2;
+    Q.economic_growth = Math.max(-15, Math.min(15, Q.economic_growth));
+
+    // === 4. UNEMPLOYMENT RATE (macro indicator, not the demographic class) ===
+    let unemploymentDrift = 0;
+    if (Q.economic_growth < -0.5) unemploymentDrift += 0.15;
+    if (Q.economic_growth < -5) unemploymentDrift += 0.15;
+    if (Q.economic_growth >= 2) unemploymentDrift -= 0.1;
+    if (Q.economic_growth >= 4) unemploymentDrift -= 0.1;
+    if (Q.economic_growth >= 6) unemploymentDrift -= 0.1;
+    if (Q.inflation < -0.5) unemploymentDrift += 0.1;
+    if (Q.inflation <= -5) unemploymentDrift += 0.15;
+    if (Q.inflation >= 8) unemploymentDrift += 0.05;
+    Q.unemployment_rate = Math.max(2, Math.min(35, Q.unemployment_rate + unemploymentDrift));
+
+    let CRISIS_THRESHOLD = 10;
+
+    if (Q.unemployment_rate > CRISIS_THRESHOLD) {
+        let severity = (Q.unemployment_rate - CRISIS_THRESHOLD) * 0.008;
+
+        for (let state of Q.states) {
+            let fromWorkers = (Q[state + "_workers"] || 0) * severity * 0.4;
+            let fromRural   = (Q[state + "_rural"]   || 0) * severity * 0.4;
+            let fromImm     = (Q[state + "_immigrant_laborers"] || 0) * severity * 0.2;
+            let shift = fromWorkers + fromRural + fromImm;
+            if (shift <= 0) continue;
+
+            Q[state + "_workers"] -= fromWorkers;
+            Q[state + "_rural"] -= fromRural;
+            Q[state + "_immigrant_laborers"] -= fromImm;
+
+            let oldPool = Q[state + "_unemployed"] || 0;
+            Q[state + "_unemployed"] = oldPool + shift;
+
+            // of this cohort to the Democrats than Democratic presidents do
+            let incumbentPenalty = (Q.president_party === "rep") ? 1 : (Q.president_party === "dem" ? -0.5 : 0.25);
+            let demLean = 55 + (10 * incumbentPenalty);
+            let repLean = 100 - demLean;
+
+            let oldDemShare = Q[state + "_unemployed_dem"] || 50;
+            let oldRepShare = Q[state + "_unemployed_rep"] || 40;
+            Q[state + "_unemployed_dem"] = ((oldPool * oldDemShare) + (shift * demLean)) / Q[state + "_unemployed"];
+            Q[state + "_unemployed_rep"] = ((oldPool * oldRepShare) + (shift * repLean)) / Q[state + "_unemployed"];
+        }
+
+        // Mirror at the national level
+        let nWorkers = Q.workers * severity * 0.4;
+        let nRural = Q.rural * severity * 0.4;
+        let nImm = Q.immigrant_laborers * severity * 0.2;
+        Q.workers -= nWorkers;
+        Q.rural -= nRural;
+        Q.immigrant_laborers -= nImm;
+        Q.unemployed += (nWorkers + nRural + nImm);
+
+    } else {
+        // roughly half the speed of the crisis drift, and only pulling down the
+        // *excess* over the original baseline, never below it
+        let recoveryRate = 0.004;
+
+        for (let state of Q.states) {
+            let excess = (Q[state + "_unemployed"] || 0) - (Q[state + "_unemployed_baseline"] || 0);
+            if (excess <= 0.01) continue;
+            let reabsorbed = excess * recoveryRate;
+            Q[state + "_unemployed"] -= reabsorbed;
+            Q[state + "_workers"] = (Q[state + "_workers"] || 0) + reabsorbed * 0.5;
+            Q[state + "_rural"] = (Q[state + "_rural"] || 0) + reabsorbed * 0.35;
+            Q[state + "_immigrant_laborers"] = (Q[state + "_immigrant_laborers"] || 0) + reabsorbed * 0.15;
+        }
+
+        let nExcess = Q.unemployed - Q.unemployed_baseline;
+        if (nExcess > 0.01) {
+            let nReabsorbed = nExcess * recoveryRate;
+            Q.unemployed -= nReabsorbed;
+            Q.workers += nReabsorbed * 0.5;
+            Q.rural += nReabsorbed * 0.35;
+            Q.immigrant_laborers += nReabsorbed * 0.15;
+        }
+    }
+
+    // === 6. PLAYER-FACING ECONOMIC TICKER FLAGS ===
+    // Each flag only fires once per crossing, gated by its own cooldown timer,
+    // so the same headline doesn't spam every month the condition persists.
+
+    if (Q.inflation >= 6 && (Q.high_inflation_ticker_timer || 0) <= 0) {
+        Q.flag_high_inflation = 1;
+    }
+    if (Q.inflation <= -3 && (Q.deflation_ticker_timer || 0) <= 0) {
+        Q.flag_deflation = 1;
+    }
+    if (Q.unemployment_rate > CRISIS_THRESHOLD && (Q.unemployment_ticker_timer || 0) <= 0) {
+        Q.flag_unemployment_rising = 1;
+    }
+    if (Q.unemployment_rate <= CRISIS_THRESHOLD - 2 && Q.was_in_crisis == 1 && (Q.recovery_ticker_timer || 0) <= 0) {
+        Q.flag_unemployment_recovering = 1;
+    }
+    Q.was_in_crisis = (Q.unemployment_rate > CRISIS_THRESHOLD) ? 1 : 0;
+
+    if (Q.economic_expansion >= 50 && (Q.bubble_ticker_timer || 0) <= 0) {
+        Q.flag_credit_bubble = 1;
+    }
+    if (Q.economic_growth >= 6 && (Q.boom_ticker_timer || 0) <= 0) {
+        Q.flag_boom = 1;
+    }
+
+    // Decrement all cooldown timers
+    Q.high_inflation_ticker_timer = Math.max(0, (Q.high_inflation_ticker_timer || 0) - 1);
+    Q.deflation_ticker_timer = Math.max(0, (Q.deflation_ticker_timer || 0) - 1);
+    Q.unemployment_ticker_timer = Math.max(0, (Q.unemployment_ticker_timer || 0) - 1);
+    Q.recovery_ticker_timer = Math.max(0, (Q.recovery_ticker_timer || 0) - 1);
+    Q.bubble_ticker_timer = Math.max(0, (Q.bubble_ticker_timer || 0) - 1);
+    Q.boom_ticker_timer = Math.max(0, (Q.boom_ticker_timer || 0) - 1);
+
+    if(Q.inflation <= 3.50 && Q.flag_boom == 1)
+    {
+        this.achieve("stonks");
+    }
+    if((Q.stevens_advisor == 1 || Q.sumner_advisor == 1 || Q.wade_advisor == 1 || Q.chandler_advisor == 1 || Q.morton_advisor == 1 || Q.butler_advisor == 1 ) && (Q.garfield_advisor == 1 || Q.sherman_advisor == 1 || Q.blaine_advisor == 1 || Q.hayes_advisor == 1 || Q.fish_advisor == 1) && (Q.conkling_advisor == 1 || Q.cameron_advisor == 1 || Q.seward_advisor == 1) && (Q.schurz_advisor == 1 || Q.trumbull_advisor == 1 || Q.cox_advisor == 1))
+    {
+        this.achieve("team_of_rivals");
+    }
+    if(Q.fenian > 0 && Q.treaty_Washington == 3)
+    {
+        this.achieve("fenian_games");
+    }
+    if(Q.sherman_advisor == 1 && Q.occupation >= 2)
+    {
+        this.achieve("shermanposting");
+    }
+    if(Q.freedmen_rep >= 75 && Q.workers_rep >= 75 && Q.middle_class_rep >= 75 && Q.rural_rep >= 75 && Q.immigrant_laborers_rep >= 75 && Q.unemployed_rep >= 75)
+    {
+        this.achieve("party_of_lincoln");
+    }
+
+    //////////////////////////////// Education & Science support/economic changes
+    if (Q.major_curriculum && Q.major_curriculum == "democratic") {
+        if (Q.pro_republic < 60) {
+            Q.pro_republic += 0.5;
+        } 
+    }
+    if (Q.minor_curriculum && Q.minor_curriculum == "democratic") {
+        if (Q.pro_republic < 60) {
+            Q.pro_republic += 0.3;
+        } 
+    }
+    for (let state of Q.states) {
+        let total_pop = 0;
+
+        // Calculate total population (excluding unemployed)
+        for (let cls of Q.classes) {
+            if (cls === "unemployed") continue;
+            total_pop += Q[state + "_" + cls] || 0;
+        }
+
+        if (total_pop <= 0) continue;
+
+        // Target unemployed based on national unemployment %
+        let target_unemployed = Math.round(total_pop * (Q.unemployed / 100));
+
+        let current_unemployed = Q[state + "_unemployed"] || 0;
+
+        // Smooth adjustment (prevents wild jumps)
+        let change = (target_unemployed - current_unemployed) * 0.25;
+
+        Q[state + "_unemployed"] = Math.max(0, Math.round(current_unemployed + change));
+    }
+
+    // BASELINE GROWTH / SUPPRESSION (monthly)
+    if (Q.occupation == 0) {
+        Q.kkk_strength += 5;
+        if (Q.whiteL_formed == 1){
+            Q.whiteL_strength += 5;
+        }
+    } else if (Q.occupation == 1) {
+        Q.kkk_strength += 3;
+        if (Q.whiteL_formed == 1){
+            Q.whiteL_strength += 4;
+        }
+    } else if (Q.occupation == 2) {
+        Q.kkk_strength -= 1;
+        if (Q.whiteL_formed == 1){
+            Q.whiteL_strength += 0.5;
+        }
+    }
+    
+    // POLICE LOYALTY EFFECT
+    if (Q.Us_police_loyalty < 0.41) {
+        Q.kkk_strength += 3;   // +360 per year
+        if (Q.whiteL_formed == 1){
+            Q.whiteL_strength += 4;
+        }
+    } else if (Q.Us_police_loyalty > 0.71) {
+        Q.kkk_strength -= 3;   // -240 per year
+        if (Q.whiteL_formed == 1 && Q.whiteL_strength > 0){
+            Q.whiteL_strength -= 1.5;
+        }
+    }
+
+    // STATE MILITIAS (scales with strength)
+    if (Q.state_militia_formed == 1) {
+        Q.kkk_strength -= (Q.state_militia_strength * 0.00015);
+        if (Q.whiteL_formed == 1){
+            Q.kkk_strength -= (Q.state_militia_strength * 0.00005);
+        }
+    }
+
+    // UNION LEAGUE BACKLASH
+    if (Q.Union_League_strength > 60) {
+        Q.kkk_strength += 0.02;   // +240 per year
+        if (Q.whiteL_formed == 1){
+            Q.whiteL_strength += 0.06;
+        }
+    }
+    // RADICAL RECONSTRUCTION BACKLASH
+    if (Q.Union_League_militancy > 0.4) {
+        Q.kkk_militancy += 0.004;
+        if (Q.whiteL_formed == 1){
+            Q.whiteL_militancy += 0.04;
+        }
+    }
+
+    // WEAK ENFORCEMENT RADICALIZES
+    if (Q.occupation == 0 && Q.Us_police_loyalty < 0.41) {
+        Q.kkk_militancy += 0.003;
+        if (Q.whiteL_formed == 1){
+            Q.whiteL_militancy += 0.06;
+        }
+    }
+
+    // STRONG ENFORCEMENT CONTAINS VIOLENCE
+    if (Q.occupation == 2 && Q.army_loyalty > 0.75) {
+        Q.kkk_militancy -= 0.005;
+        if (Q.whiteL_formed == 1){
+            Q.whiteL_militancy -= 0.0025;
+        }
+    }
+
+    // KKK BAN EFFECT (UNDERGROUND EFFECT)
+    if (Q.kkk_banned == 1) {
+        Q.kkk_strength -= 0.04;
+        Q.kkk_militancy += 0.006;        
+    }
+    Q.kkk_strength = Math.max(Q.kkk_strength, 0);
+    Q.kkk_militancy = Math.min(1.5, Math.max(0.01, Q.kkk_militancy));
+    Q.kkk_history.push(Q.kkk_strength);
+
+    if (Q.kkk_history && Q.kkk_history.length >= 75) {
+        let l = Q.kkk_history.length;
+        if (Q.kkk_history[l-1] < Q.kkk_history[l-2] && Q.kkk_history[l-1] < Q.kkk_history[l-2]) {
+            Q.white_league_trigger = 1;
+        }
+    }
+    if (Q.whiteL_formed == 1) {
+        let pressure = (Q.whiteL_strength / 1000) * Q.whiteL_militancy;
+        Q.rural_dem += pressure * 2;
+        Q.rural_rep -= pressure * 2;
+    }
+    if (Q.kkk_strength >= 150 && Q.kkk_rise == 0)
+    {
+        Q.kkk_rise = 1;
+    }
+    if (Q.kkk_rise == 1 && Q.kkk_strength <= 0)
+    {
+        Q.kkk_rise = 2;
+    }
+    
+    let demReformDominant = (Q.dem_reform_strength > Q.dem_bourbon_strength) && (Q.dem_reform_dissent < Q.dem_bourbon_dissent);
+    let demGrowthStates = demReformDominant ? Q.states : Q.southern_states;
+
+    if (Q.year == 1869) {
+        if (Q.radical_strength > 30) {
+            Q.liberal_strength += 5/12;
+            Q.liberal_dissent += 5/12;
+        }
+        for (let state of demGrowthStates) {
+            Q[state + '_workers_dem'] = (Q[state + '_workers_dem'] || 0) + 5/12;
+            Q[state + '_middle_class_dem'] = (Q[state + '_middle_class_dem'] || 0) + 5/12;
+            Q[state + '_rural_dem'] = (Q[state + '_rural_dem'] || 0) + 5/12;
+            Q[state + '_immigrant_laborers_dem'] = (Q[state + '_immigrant_laborers_dem'] || 0) + 5/12;
+            Q[state + '_unemployed_dem'] = (Q[state + '_unemployed_dem'] || 0) + 5/12;
+        }
+    }
+    if (Q.year == 1870) {
+        if (Q.radical_strength > 30) {
+            Q.liberal_strength += 6/12;
+            Q.liberal_dissent += 6/12;
+        }
+        for (let state of demGrowthStates) {
+            Q[state + '_workers_dem'] = (Q[state + '_workers_dem'] || 0) + 6/12;
+            Q[state + '_middle_class_dem'] = (Q[state + '_middle_class_dem'] || 0) + 6/12;
+            Q[state + '_rural_dem'] = (Q[state + '_rural_dem'] || 0) + 6/12;
+            Q[state + '_immigrant_laborers_dem'] = (Q[state + '_immigrant_laborers_dem'] || 0) + 6/12;
+            Q[state + '_unemployed_dem'] = (Q[state + '_unemployed_dem'] || 0) + 6/12;
+        }
+    }
+    if (Q.year == 1871) {
+        if (Q.radical_strength > 30) {
+            Q.liberal_strength += 4/12;
+            Q.liberal_dissent += 4/12;
+        }
+        for (let state of demGrowthStates) {
+            Q[state + '_workers_dem'] = (Q[state + '_workers_dem'] || 0) + 4/12;
+            Q[state + '_middle_class_dem'] = (Q[state + '_middle_class_dem'] || 0) + 4/12;
+            Q[state + '_rural_dem'] = (Q[state + '_rural_dem'] || 0) + 4/12;
+            Q[state + '_immigrant_laborers_dem'] = (Q[state + '_immigrant_laborers_dem'] || 0) + 4/12;
+            Q[state + '_unemployed_dem'] = (Q[state + '_unemployed_dem'] || 0) + 4/12;
+        }
+    }
+    if (Q.year == 1872) {
+        if (Q.radical_strength > 30) {
+            Q.liberal_strength += 3/12;
+            Q.liberal_dissent += 3/12;
+        }
+        for (let state of demGrowthStates) {
+            Q[state + '_workers_dem'] = (Q[state + '_workers_dem'] || 0) + 3/12;
+            Q[state + '_middle_class_dem'] = (Q[state + '_middle_class_dem'] || 0) + 3/12;
+            Q[state + '_rural_dem'] = (Q[state + '_rural_dem'] || 0) + 3/12;
+            Q[state + '_immigrant_laborers_dem'] = (Q[state + '_immigrant_laborers_dem'] || 0) + 3/12;
+            Q[state + '_unemployed_dem'] = (Q[state + '_unemployed_dem'] || 0) + 3/12;
+        }
+    }
+    if (Q.year == 1873) {
+        if (Q.radical_strength > 30) {
+            Q.liberal_strength += 2/12;
+            Q.liberal_dissent += 2/12;
+        }
+        for (let state of demGrowthStates) {
+            Q[state + '_workers_dem'] = (Q[state + '_workers_dem'] || 0) + 2/12;
+            Q[state + '_middle_class_dem'] = (Q[state + '_middle_class_dem'] || 0) + 2/12;
+            Q[state + '_rural_dem'] = (Q[state + '_rural_dem'] || 0) + 2/12;
+            Q[state + '_immigrant_laborers_dem'] = (Q[state + '_immigrant_laborers_dem'] || 0) + 2/12;
+            Q[state + '_unemployed_dem'] = (Q[state + '_unemployed_dem'] || 0) + 2/12;
+        }
+    }
+    if (Q.year >= 1874) {
+        if (Q.radical_strength > 30) {
+            Q.liberal_strength += 1/12;
+            Q.dem_reform_strength += 2/12;
+        }
+        for (let state of demGrowthStates) {
+            Q[state + '_workers_dem'] = (Q[state + '_workers_dem'] || 0) + 1/12;
+            Q[state + '_middle_class_dem'] = (Q[state + '_middle_class_dem'] || 0) + 1/12;
+            Q[state + '_rural_dem'] = (Q[state + '_rural_dem'] || 0) + 1/12;
+            Q[state + '_immigrant_laborers_dem'] = (Q[state + '_immigrant_laborers_dem'] || 0) + 1/12;
+            Q[state + '_unemployed_dem'] = (Q[state + '_unemployed_dem'] || 0) + 1/12;
+        }
+
+    }
+    if(Q.liberal_split == 1)
+    {
+        Q.middle_class_rep -= 3/12;
+        Q.middle_class_lib += 3/12;
+    }
+
+}
+
+Q.has_event = 0;
+// check if there are any cards in #event, and then go to main if not.
+var scene = this.game.scenes['post_event.events_choice'];
+var choices = this._compileChoices(scene);
+if (choices && choices[0].title != "Continue...") {
+    Q.has_event = 1;
+} else {
+    Q.has_event = 0;
+}
+// pre-load all of the event images
+if (this.ui && this.ui.show_portraits) {
+    for (var choice of choices) {
+        var cc = this.game.scenes[choice.id];
+        if (cc.faceImage) {
+            var im = new Image();
+            im.url = cc.faceImage;
+        }
+    }
+}
+
+if (typeof window !== "undefined" && window.generateBar) {
+}
+!}
+go-to: events_choice if has_event = 1; main if has_event = 0 and difficulty >= 0; main.main_easy if has_event = 0 and difficulty < 0
+
+= [+ month : month +] [+ year +]
+
+@events_choice
+
+- #event
+
+# This scene is solely for updating numbers after events, and routing to special events

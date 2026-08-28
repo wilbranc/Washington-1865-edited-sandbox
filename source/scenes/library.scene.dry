@@ -1,0 +1,396 @@
+title: library
+new-page: true
+is-special: true
+go-to: menu
+
+= The Library
+
+Herein contains relevant information about the government and politics of the United States.
+
+@menu
+
+- @government: The American system of government
+- @US_timeline: Timeline of the United States (until 1865)
+- @curr_gov: Current government details
+- @demographics: Demographics
+- @parties: Parties
+- @election_projections: Public opinion (and projected election results)
+- @paramilitaries: Paramilitary groups
+- @factions: Internal factions
+- @figures: Figures and charts
+- @backSpecialScene: Exit library.
+
+@government
+go-to: menu
+
+The United States of America is a federal republic composed of individual states united under a national constitution. Its system of government balances powers between the President, Congress, and Supreme Court, with power reserved for the states.
+
+The President of the United States is both the head of state and head of government, elected every four years by a system known as the Electoral College. While citizens vote directly for electors pledged to a candidate, it is technically the electors who choose the president. The president leads the executive branch, commands the armed forces, and plays a key role in legislation through veto power and executive orders.
+
+The Congress is the national legislature, divided into two chambers: the House of Representatives and the Senate.
+
+The House of Representatives is the lower chamber. Its members are elected every two years from districts based on population. The House introduces tax and spending bills and represents the people more directly.
+
+The Senate is the upper chamber. Each state, regardless of size, has two senators chosen by state legislatures who serve six-year terms. The Senate confirms appointments, ratifies treaties, and tries impeachment cases.
+
+Together, both chambers must approve laws. A presidential veto can be overridden by a two-thirds vote in both houses.
+
+The Supreme Court is the highest judicial authority and has the power to strike down laws it finds unconstitutional. Justices are appointed for life, nominated by the president, and confirmed by the Senate.
+
+Each state has its own constitution, legislature, and governor. States control many areas of daily life such as education, policing, and local elections but they cannot pass laws that violate the U.S. Constitution or federal law.
+
+The system is designed with checks and balances, so that no branch dominates the others.
+
+@US_timeline
+go-to: menu
+
+= Timeline of the United States (until 1865)
+
+**1787**: The U.S. Constitution is drafted in Philadelphia, replacing the weaker Articles of Confederation. It creates a strong federal government with checks and balances among the executive, legislative, and judicial branches.
+
+**1789**: George Washington is unanimously elected as the first President of the United States. The first Congress assembles, and the new federal government begins operation. The Bill of Rights is introduced and later ratified.
+
+**1791**: The first political factions emerge: the <span style="color: #FF7F50;">**Federalists**</span>, led by Alexander Hamilton, support a strong national government and close ties to Britain meanwhile the <span style="color: #228B22;">**Democratic-Republicans**</span>, led by Thomas Jefferson and James Madison, advocate for agrarianism and states’ rights.
+
+**1796**: Washington declines a third term. John Adams, a <span style="color: #FF7F50;">**Federalist**</span>, is elected president. Partisan tensions deepen between <span style="color: #FF7F50;">**Federalists**</span> and <span style="color: #228B22;">**Democratic-Republicans**</span>.
+
+**1800**: Thomas Jefferson defeats Adams in what is called the "Revolution of 1800." Power transfers peacefully from one party to another, a landmark in republican governance.
+
+**1812-1815**: The United States declares war on Britain over trade restrictions and impressment of sailors. The War of 1812 ends in a draw but increases national pride and weakens Native resistance in the Midwest.
+
+**1816**:  The <span style="color: #FF7F50;">**Federalist Party**</span> collapses after the Hartford Convention, where New England <span style="color: #FF7F50;">**Federalists**</span> were accused of disloyalty during the war. This begins the Era of Good Feelings, a period of one-party rule under the <span style="color: #228B22;">**Democratic-Republicans**</span>.
+
+**1828**: Andrew Jackson forms the <span style="color: #0015bc;">**Democrats**</span>, emphasizing populism, white male suffrage, and states' rights. He defeats Quincy Adams in a landslide, marking the rise of the Second Party System.
+
+**1834**: The <span style="color: #c4b369;">**Whig Party**</span> is formed in opposition to Jackson's executive overreach. It unites economic nationalists, reformers, and anti-Jackson Southerners.
+
+**1846–1848**: The Mexican-American War results in the U.S. annexing vast southwestern territory. Tensions rise over whether these new lands will allow slavery.
+
+**1850**:  The Compromise of 1850, engineered by Henry Clay and Stephen Douglas, tries to maintain a North-South balance. California enters as a free state but the Fugitive Slave Act is passed to appease the south which enrages Northerners.
+
+**1854**: The Kansas-Nebraska Act allows territories to decide slavery via popular sovereignty. Violent conflict erupts in "Bleeding Kansas" between slavery supporters and abolitionist forces led by **John Brown**. The <span style="color: #c4b46b;">**Whig Party**</span> collapses, and the <span style="color: #c00000;">**Republican**</span> is founded as an anti-slavery party.
+
+**1857**: The Dred Scott decision by the Supreme Court declares that African Americans are not citizens and that Congress cannot prohibit slavery in the territories. The North reacts with outrage.
+
+**1860**: Abraham Lincoln, the <span style="color: #c00000;">**Republican**</span> candidate, wins the presidency without any Southern electoral votes. Southern states begin seceding from the Union, fearing the end of slavery.
+
+**1861**: The Civil War begins as Confederate forces attack Fort Sumter. The Union fights to preserve the United States while the Confederacy fights for independence and to protect slavery.
+
+**1863**: Lincoln issues the Emancipation Proclamation, declaring enslaved people in rebellious states to be free. The war becomes both a fight to preserve the Union and a crusade against slavery.
+
+**1864**: During the 1864 presidential election Lincoln forms a temporary alliance with pro-war <span style="color: #0015bc;">**Democrats**</span> and runs under the banner of the <span style="color: #B22222;">**National Union Party**</span>. He selects Andrew Johnson, a Southern Unionist <span style="color: #0015bc;">**Democrat**</span> from Tennessee, as his running mate to signal unity and reconciliation. In the November election, Lincoln defeats <span style="color: #0015bc;">**Democratic**</span> nominee George B. McClellan, a former Union general who campaigns on a vague peace platform.
+
+@curr_gov
+
+= Current Government
+
+President: [+ president +]
+
+Speaker of the House: [+ speaker +] ([+ speaker_party +])
+
+Congress composition:
+
+**Senate**:
+
+<span style="color: #c00000;">**Republican**</span>: [+ rep_senate_r +]
+<span style="color: #0015bc;">**Democrats**</span>: [+ dem_senate_r +]
+[? if liberal_split = 1 : <span class="tooltip-text" title="Liberal Republican Party" style="color: #DAA520;">**Lib Republicans**</span>: [+ lib_senate_r +] seats, ?]
+<span style="color: #00cc00;">**Other**</span>: [+ other_senate_r +]
+
+**House of Representatives**:
+
+<span style="color: #c00000;">**Republican**</span>: [+ rep_r +]
+<span style="color: #0015bc;">**Democrats**</span>: [+ dem_r +]
+[? if liberal_split = 1 : <span class="tooltip-text" title="Liberal Republican Party" style="color: #DAA520;">**Lib Republicans**</span>: [+ lib_r +] seats, ?]
+<span style="color: #00cc00;">**Other**</span>: [+ other_r +]
+
+<span style="color: #c00000;">**Republican**</span> position: [? if rep_majority = 1 : Majority in government ?][? if rep_majority != 1 : Minority in government ?]
+
+@cabinet
+go-to: menu
+
+Current cabinet:
+
+Secretary of State: [+ sect_state +][+ sect_state_party +]
+
+Secretary of Interior: [+ sect_interior +][+ sect_interior_party +]
+
+Secretary of Treasury: [+ sect_treasury +][+ sect_treasury_party +]
+
+Attorney General: [+ attorney_general +][+ attorney_general_party +]
+
+Secretary of War: [+ sect_war +][+ sect_war_party +]
+
+Secretary of Agriculture: [+ sect_agriculture +][+ sect_agriculture_party +]
+
+@demographics
+go-to: menu
+
+**Demographic Groups**
+
+**Freedmen**: Formerly enslaved African Americans in the South. Newly emancipated, they overwhelmingly support the <span style="color: #c00000;">**Republican Party**</span>, especially its <span style="color: #7A1F5C;">**Radical**</span> faction, which promises civil rights, protection from white supremacist violence, and land reform. Freedmen often participate actively in Southern <span style="color: #c00000;">**Republican**</span> politics, serving in local, state, and even national office during Reconstruction. They face constant threats from groups like the Ku Klux Klan and hostile Southern elites. They make up about 12–15% of the total U.S. population, concentrated in the Deep South.
+
+**Urban Workers**: Urban laborers and industrial wage workers, especially in the North. This group includes both native-born and immigrant populations, employed in manufacturing, transportation, and trades. Their political loyalties are divided between <span style="color: #7A1F5C;">**Radical-Republicans**</span>, early labor reformers, and <span style="color: #0015bc;">**Democrats**</span> all vie for their support. Some lean toward <span style="color: #9D2933;">**moderate**</span> reformism; others are suspicious of Black civil rights, fearing job competition. They make up around 25–30% of the national population.
+
+**Middle Class**: White-collar professionals, small business owners, and educated elites. This group includes lawyers, teachers, clerks, and merchants who are predominantly Northern, with strong influence in newspapers and civic organizations. They are the backbone of <span style="color: #9D2933;">**Moderate Republican**</span>s and some <span style="color: #DAA520;">**Liberal Republicans**</span>, supporting Reconstruction in principle but often wary of radical measures like land confiscation or racial integration. They represent 10–15% of the population.
+
+**Rural**: Smallholding farmers, planters, and tenant farmers, especially in the South and Midwest. In the North and West, many support the <span style="color: #c00000;">**Republican**</span> Party due to its pro-farmer and homesteading policies. In the South, most white rural voters are <span style="color: #0015bc;">**Democrats**</span> and strongly oppose Reconstruction. This group is deeply divided by region and race. Rural Americans make up 30–40% of the population.
+
+**Immigrant Laborers**: A growing group of Irish, German, and other European immigrants concentrated in Northern cities. They work in labor-intensive, often low-wage jobs. Irish immigrants in particular lean <span style="color: #0015bc;">**Democratic**</span>, especially in opposition to Reconstruction and in defense of Catholic schools. German immigrants are more mixed, with some <span style="color: #7A1F5C;">**radical**</span> and <span style="color: #DAA520;">**liberal**</span> factions supporting <span style="color: #c00000;">**Republican**</span>s or early Socialist movements. Immigrant laborers comprise 10–15% of the population.
+
+**Unemployed & Displaced**: A transient, politically volatile group composed of war veterans, former slaves denied land, displaced workers, and refugees from the Civil War. Many are mobile, poor, and desperate who are susceptible to populist or radical appeals, but often disengaged from formal politics due to disenfranchisement or instability. This group is small but significant in times of crisis, making up around 5–8% of the population.
+
+**Native Americans/Indians** are found across the western frontier, reservations, and borderlands. Largely excluded from national politics and often viewed as obstacles to westward expansion, they suffer from violent military campaigns, broken treaties, and forced removals during this period. They have been reduce to only 100,000 and 300,000 in size.
+
+@election_projections
+view-if: (not historical_mode) or game_over
+go-to: menu
+
+<span style="color: #c00000;">**Republican**</span>s: [+ rep_senate_r +] seats
+
+<span style="color: #0015bc;">**Democrats**</span>: [+ dem_senate_r +] seats
+
+<span style="color: #00cc00;">**Other**</span>: [+ other_senate_r +] seats
+
+House:
+
+<span style="color: #c00000;">**Republican**</span>s: [+ rep_r +] seats
+
+<span style="color: #0015bc;">**Democrats**</span>: [+ dem_r +] seats
+
+<span style="color: #00cc00;">**Other**</span>: [+ other_r +] seats
+
+**Detailed results for each demographic**
+
+Workers: <span style="color: #c00000;">**Republican**</span>: [+ workers_rep +]%, <span style="color: #0015bc;">**Democrats**</span>: [+ workers_dem +]%, <span style="color: #00cc00;">**Other**</span> [? if other_name != 0 : [+ other_name +]?]: [+ workers_other +]%
+
+Middle Class: <span style="color: #c00000;">**Republican**</span>: [+ middle_class_rep +]%, <span style="color: #0015bc;">**Democrats**</span>: [+ middle_class_dem +]%, <span style="color: #00cc00;">**Other**</span> [? if other_name != 0 : [+ other_name +]?]: [+ middle_class_other +]%
+
+Freemen: <span style="color: #c00000;">**Republican**</span>: [+ freemen_rep +]%, <span style="color: #0015bc;">**Democrats**</span>: [+ freemen_dem +]%, <span style="color: #00cc00;">**Other**</span> [? if other_name != 0 : [+ other_name +]?]: [+ freemen_other +]%
+
+Immigrant Laborers: <span style="color: #c00000;">**Republican**</span>: [+ immigrant_laborers_rep +]%, <span style="color: #0015bc;">**Democrats**</span>: [+ immigrant_laborers_dem +]%, <span style="color: #00cc00;">**Other**</span> [? if other_name != 0 : [+ other_name +]?]: [+ immigrant_laborers_other +]%
+
+Unemployed: <span style="color: #c00000;">**Republican**</span>: [+ unemployed_rep +]%, <span style="color: #0015bc;">**Democrats**</span>: [+ unemployed_dem +]%, <span style="color: #00cc00;">**Other**</span> [? if other_name != 0 : [+ other_name +]?]: [+ unemployed_other +]%
+
+Support for Reconstruction: [+ reconstruction_support +]%
+
+@parties
+go-to: menu
+
+<span style="color: #c00000;">**Republican Party**</span> – The party of Lincoln and the Union: We are the dominant force in Washington following the Civil War. Our coalition includes <span style="color: #7A1F5C;">**Radical Republicans**</span>, who seek full equality and Reconstruction in the South, as well as <span style="color: #9D2933;">**Moderates**</span> who are more cautious but still oppose secession and slavery. We are the party of emancipation, the Freedmen's Bureau, and constitutional reform. Our base includes Northern industrialists, African Americans, and many reform-minded middle-class citizens.
+
+<span style="color: #0015bc;">**Democratic Party**</span> - The opposition party: The <span style="color: #0015bc;">**Democrats**</span> represent a mix of Northern conservatives and Southern ex-Confederates. Though weakened by the war, they remain a force in Congress and dominate Southern state politics where federal troops are absent. They oppose <span style="color: #7A1F5C;">**Radical**</span> Reconstruction and civil rights for freedmen, and many <span style="color: #0015bc;">**Democrats**</span> advocate for a swift return to “home rule” in the South.
+
+Current relations: [+ dem_relation : relationships +]
+
+<span style="color: #00cc00;">**Other**</span> - there is a multitude of small, mostly single issue parties, such as the many Unionists parties and independents who don't belong to any party.
+
+@paramilitaries
+on-arrival: {!
+Q.kkk_strength = Math.round(Q.kkk_strength);
+!}
+go-to: menu
+
+**Paramilitary groups:**
+
+**Ku Klux Klan**: The KKK was formed following the defeat of the Confederacy in the American Civil War. The goal of this Klan was to intimidate freedmen and reformers into surrendering their newly gained political and social power over what had once been the hegemonic White system of the Old South. 
+
+Strength: [+ kkk_strength +] thousand
+
+Militarization: [+ kkk_militancy : militancy +]
+
+**Official military/paramilitary groups:**
+
+U.S Army: [+ army_strength +] thousand troops. This is the American Army.
+
+Loyalty: [+ army_loyalty : loyalty +]
+
+Militarization: [+ army_militancy : militancy +]
+
+Federal Police: [+ Us_police_strength +] thousand members.
+
+Police loyalty: [+ Us_police_loyalty : loyalty +]
+
+[? if state_militia : State militia strength: [+ state_militia_strength +] ?]
+
+@factions
+
+**Internal factions of the <span style="color: #c00000;">**Republican**</span>s**
+
+Overall dissent: [+ dissent_percent : dissent +]
+
+**<span style="color: #7A1F5C;">Radicals</span>**
+
+They are the most extreme wing of the party who supported immediate, complete, and permanent eradication of slavery in the United States. But now the war is over, they are increasing pushing to establish civil rights for former slaves and fully implement emancipation as well as making the South be punished for what they did.
+
+Strength: [+ radical_dissent : strength +]
+
+Dissent: [+ radical_dissent : dissent +]
+
+**<span style="color: #9D2933;">Moderates</span>**
+
+This is the faction of Lincoln and and opposed the more militant stances advocated by the <span style="color: #7A1F5C;">**Radical Republicans**</span>. <span style="color: #9D2933;">**Moderate Republicans**</span> are less enthusiastic than <span style="color: #7A1F5C;">**Radical Republicans**</span> about Black suffrage, even though they otherwise embraced civil equality and the expansion of federal authority during the American Civil War.
+
+Strength: [+ moderate_strength : strength +]
+
+Dissent: [+ moderate_dissent : dissent +]
+
+**<span style="color: #B5651D;">Conservatives</span>**
+
+This factions advocated for a lenient, conciliatory policy towards the South in contrast to the harsher attitudes emphasized by <span style="color: #7A1F5C;">**Radical Republicans**</span>. generally opposed efforts by <span style="color: #7A1F5C;">**Radical Republicans**</span> to rebuild the Southern U.S. under an economically mobile, free-market system.
+
+Strength: [+ conservative_strength : strength +]
+
+Dissent: [+ conservative_dissent : dissent +]
+
+**<span style="color: #DAA520;">Liberals</span>**
+
+The <span style="color: #DAA520;">**Liberal Republicans**</span> were small in the early parts of reconstruction and grew thorugh out the late 1860s and wanted to end federal intervention in the South, promoting a more hands-off approach to governing, and emphasizing issues like civil service reform and limited government. 
+
+Strength: [+ liberal_strength : strength +]
+
+Dissent: [+ liberal_dissent : dissent +]
+
+@figures
+title: Figures and Charts
+go-to: menu
+on-display: {!
+let houseData = [
+    {
+        id: "rep",
+        legend: "Republican",
+        name: "Republican",
+        color: "#B22222",
+        outline: "#600000",
+        seats: Math.floor(Q.rep_r),
+    },
+    {
+        id: "dem",
+        legend: "Democrat",
+        name: "Democrat",
+        color: "#003366",
+        outline: "#001933",
+        seats: Math.floor(Q.dem_r),
+    },
+    {
+        id: "other",
+        legend: "Other",
+        name: "Other",
+        color: "#AAAAAA",
+        outline: "#666666",
+        seats: Math.floor(Q.other_r),
+    },
+    {
+        id: "lib",
+        legend: "Liberal Republicans",
+        name: "Liberal Republican",
+        color: "#DAA520",
+        outline: "#866614",
+        seats: Math.floor(Q.lib_r),
+    }
+];
+
+let senateData = [
+    {
+        id: "rep",
+        legend: "Republican",
+        name: "Republican",
+        color: "#B22222",
+        outline: "#600000",
+        seats: Q.rep_senate_r,
+    },
+    {
+        id: "dem",
+        legend: "Democrat",
+        name: "Democrat",
+        color: "#003366",
+        outline: "#001933",
+        seats: Q.dem_senate_r,
+    },
+    {
+        id: "other",
+        legend: "Other",
+        name: "Other",
+        color: "#AAAAAA",
+        outline: "#666666",
+        seats: Q.other_senate_r,
+    },
+    {
+        id: "lib",
+        legend: "Liberal Republicans",
+        name: "Liberal Republican",
+        color: "#DAA520",
+        outline: "#866614",
+        seats: Math.floor(Q.lib_senate_r),
+    }
+];
+
+if (d3 && window) {
+    var width = 500;
+    var height = 500;
+    var screenWidth = document.getElementById('content').offsetWidth;
+    if (screenWidth < width - 50) {
+        width = screenWidth - 50;
+        height = width;
+        document.getElementById("house_chart").style.height = screenWidth/2 + "px";
+        document.getElementById("senate_chart").style.height = screenWidth/2 + "px";
+    }
+
+    var parliament = d3.parliament()
+        .width(width)
+        .height(height)
+        .innerRadiusCoef(0.4);
+
+    parliament.enter.smallToBig = true;
+    parliament.enter.fromCenter = true;
+    parliament.exit.toCenter = false;
+    parliament.exit.bigToSmall = true;
+    parliament.update.animate = true;
+
+    d3.select("#house_chart").datum(houseData).call(parliament);
+    d3.select("#senate_chart").datum(senateData).call(parliament);
+
+    var lines = d3.linegraph(false, false,
+        ["rep", "dem", "lib", "other"].filter(p => Q.election_records.some(r => r[p] > 0)),
+        {"rep": "#B22222", "dem": "#003366", "lib": "#DAA520", "other": "#AAAAAA"},
+        {"rep": "Republican", "dem": "Democrat", "lib": "Liberal Republican", "other": "Other"},
+        100, 0, 10
+    );
+    lines.width(width).height(400);
+    if (Q.election_records.length > 0) {
+        d3.select("#election_history").datum(Q.election_records).call(lines);
+    }
+
+    if (!Q.historical_mode || Q.game_over) {
+        var lines_2 = d3.linegraph(true, true,
+            ["rep", "dem", "lib", "other"].filter(p => Q.party_support_records.some(r => r[p] > 0)),
+            {"rep": "#B22222", "dem": "#003366", "lib": "#DAA520", "other": "#AAAAAA"},
+            {"rep": "Republican", "dem": "Democrat", "lib": "Liberal Republican", "other": "Other"},
+            100, 0, 10
+        );
+        lines_2.width(width).height(400);
+        d3.select("#party_support_history").datum(Q.party_support_records).call(lines_2);
+    }
+
+    var minInflation = d3.min(Q.economic_records, d => d.inflation);
+    var maxUnemployment = d3.max(Q.economic_records, d => d.unemployment);
+    var lines_3 = d3.linegraph(true, true, ['inflation', 'unemployment'],
+        {'inflation': '#0000FF', 'unemployment': '#FF0000'},
+        {'inflation': 'Inflation', 'unemployment': 'Unemployment'},
+        maxUnemployment + 5, minInflation - 5, 21);
+    lines_3.width(width).height(300);
+    d3.select("#economic_history").datum(Q.economic_records).call(lines_3);
+}
+!}
+
+= Projected House Results (%)
+
+[? if historical_mode: Not available in historical mode. ?]
+
+{!<svg id="party_support_history" style="width: 500px; height: 400px;"> </svg>!}
+
+= Economic History
+
+{!<svg id="economic_history" style="width: 500px; height: 300px;"> </svg>!}
+
+

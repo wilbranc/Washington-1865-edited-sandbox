@@ -1,0 +1,283 @@
+title: Status
+new-page: true
+is-special: true
+on-arrival: {!
+if (Q.unemployed) {
+    Q.unemployed_2 = Q.unemployed.toFixed(1);
+}
+if (Q.inflation) {
+    Q.inflation_2 = Q.inflation.toFixed(1);
+}
+Q.economic_growth_2 = '0';
+if (Q.economic_growth) {
+    Q.economic_growth_2 = Q.economic_growth.toFixed(1);
+}
+
+function _addP(list, id, legend, color, outline, seats) {
+    if (seats && seats > 0) list.push({ id: id, legend: legend, name: legend, color: color, outline: outline, seats: Math.floor(seats) });
+}
+
+var _house = [];
+_addP(_house, 'rep', 'Republican', '#c00000', '#E3000F', Q.rep_r);
+_addP(_house, 'dem', 'Democrat', '#0015bc', '#0015bc', Q.dem_r);
+_addP(_house, 'other', 'Other', '#00cc00', '#00cc00', Q.other_r);
+_addP(_house, 'lib', 'Liberal Republican', '#DAA520', '#DAA520', Q.lib_r);
+window._houseData = _house;
+
+var _senate = [];
+_addP(_senate, 'rep', 'Republican', '#c00000', '#c00000', Q.rep_senate_r);
+_addP(_senate, 'dem', 'Democrat', '#0015bc', '#0015bc', Q.dem_senate_r);
+_addP(_senate, 'other', 'Other', '#00cc00', '#00cc00', Q.other_senate_r);
+_addP(_senate, 'lib', 'Liberal Republican', '#DAA520', '#DAA520', Q.lib_senate_r);
+window._senateData = _senate;
+!}
+
+= Status
+
+[+ month : month +] [+ year +]
+
+Resources available: [+ resources +]
+
+<span style="color: #c00000;">**Republican**</span> position: [? if rep_majority = 1 : Majority government ?][? if rep_majority != 1 : Out of Government ?]
+
+Internal dissent: [+ dissent_percent : dissent +]
+
+= Government
+
+President: [+ president +] ([+ president_party +])
+
+[? if president = "Lincoln": <div class="Panel-img"><img src="img/portraits/Abraham_Lincoln_O-116_by_Gardner,_1865-crop.png"></div> ?]
+[? if president = "Johnson": <div class="Panel-img"><img src="img/portraits/Johnson.jpg"></div> ?]
+[? if president = "Wade": <div class="Panel-img"><img src="img/portraits/Benjamin_F_Wade.jpg"></div> ?]
+[? if president = "Grant": <div class="Panel-img"><img src="img/portraits/Ulysses_S._Grant_1870-1880.jpg"></div> ?]
+[? if president = "Chase": <div class="Panel-img"><img src="img/portraits/Salmon-P-Chase.webp"></div> ?]
+[? if president = "Seymour": <img src="img/portraits/Horatio_Seymour_(cropped,_retouched).jpg" style="outline: 3px solid #161d99; display: block; margin: 0 auto; width: 75%;"> ?]
+[? if president = "Conkling": <div class="Panel-img"><img src="img/portraits/Roscoe_Conkling.jpg"></div> ?]
+[? if president = "Blaine": <div class="Panel-img"><img src="img/portraits/James_G._Blaine.jpg"></div> ?]
+[? if president = "Hancock": <img src="img/portraits/Gen._Winfield_S._Hancock_-_NARA_-_529369_(cropped,_retouched).jpg" style="outline: 3px solid #161d99; display: block; margin: 0 auto; width: 75%;"> ?]
+[? if president = "Thurman": <img src="img/portraits/Allen_G._Thurman_-_Brady-Handy.jpg" style="outline: 3px solid #161d99; display: block; margin: 0 auto; width: 75%;"> ?]
+[? if president = "Bayard": <img src="img/portraits/960px-Thomas_F._Bayard,_Brady-Handy_photo_portrait,_circa_1870-1880_(cropped)(b).jpg" style="outline: 3px solid #161d99; display: block; margin: 0 auto; width: 75%;"> ?]
+[? if president = "Pendleton": <img src="img/portraits/250px-GeorgeHPendleton.png" style="outline: 3px solid #161d99; display: block; margin: 0 auto; width: 75%;"> ?]
+[? if president = "Greeley": <img src="img/portraits/500px-Horace_Greeley_restored.jpg" style="outline: 3px solid #DAA520; display: block; margin: 0 auto; width: 75%;"> ?]
+[? if president = "Brown": <img src="img/portraits/BGratzBrown.png" style="outline: 3px solid #DAA520; display: block; margin: 0 auto; width: 75%;"> ?]
+[? if president = "Morton": <div class="Panel-img"><img src="img/portraits/Oliver_Hazard_Perry_Morton.jpg"></div> ?]
+[? if president = "Hayes": <div class="Panel-img"><img src="img/portraits/Rutherford_Hayes.jpg"></div> ?]
+[? if president = "Tilden": <img src="img/portraits/Samuel_Tilden._Portrait_of_the_American_politician,_who_served_as_the_25th_Governor_of_New_York,_Samuel_Jones_Tilden_(1814-1886),_by_José_María_Mora,_c._1870.jpg" style="outline: 3px solid #161d99; display: block; margin: 0 auto; width: 75%;"> ?]
+[? if president = "Hendricks": <img src="img/portraits/Thomas_Andrews_Hendricks,_photo_portrait_seated,_1860-65.jpg" style="outline: 3px solid #161d99; display: block; margin: 0 auto; width: 75%;"> ?]
+[? if president = "Allen": <img src="img/portraits/William_Allen_governor_-_Brady-Handy.jpg" style="outline: 3px solid #161d99; display: block; margin: 0 auto; width: 75%;"> ?]
+
+Speaker of House: [+ speaker +] ([+ speaker_party +])
+
+= Congress composition
+
+House of Representatives:
+
+{!<svg id="house_chart" style="width: 100%; display: block;"></svg>
+<script>
+(function() {
+    if (typeof d3 === 'undefined' || !d3.parliament || !window._houseData || window._houseData.length === 0) return;
+    var el = document.getElementById('house_chart');
+    if (!el) return;
+    var w = el.parentElement.offsetWidth || 500;
+    el.setAttribute('width', w);
+    el.setAttribute('height', Math.round(w * 0.5));
+    var parl = d3.parliament();
+    parl.width(w).innerRadiusCoef(0.4);
+    parl.enter.smallToBig(false);
+    parl.enter.fromCenter(false);
+    parl.exit.toCenter(false);
+    parl.exit.bigToSmall(false);
+    parl.update.animate(false);
+    d3.select('#house_chart').datum(window._houseData).call(parl);
+})();
+</script>!}
+
+<span class="tooltip-text" title="Republican Party" style="color: #c00000;">**Republicans**</span>: [+ rep_r +] seats
+<span class="tooltip-text" title="Democratic Party" style="color: #0015bc;">**Democrats**</span>: [+ dem_r +] seats
+[? if liberal_split = 1 : <span class="tooltip-text" title="Liberal Republican Party" style="color: #DAA520;">**Lib Republicans**</span>: [+ lib_r +] seats, ?]
+<span class="tooltip-text" title="Other" style="color: #00cc00;">**Other**</span>: [+ other_r +] seats
+
+Senate Seats:
+
+{!<svg id="senate_chart" style="width: 100%; display: block;"></svg>
+<script>
+(function() {
+    if (typeof d3 === 'undefined' || !d3.parliament || !window._senateData || window._senateData.length === 0) return;
+    var el = document.getElementById('senate_chart');
+    if (!el) return;
+    var w = el.parentElement.offsetWidth || 500;
+    el.setAttribute('width', w);
+    el.setAttribute('height', Math.round(w * 0.5));
+    var parl = d3.parliament();
+    parl.width(w).innerRadiusCoef(0.4);
+    parl.enter.smallToBig(false);
+    parl.enter.fromCenter(false);
+    parl.exit.toCenter(false);
+    parl.exit.bigToSmall(false);
+    parl.update.animate(false);
+    d3.select('#senate_chart').datum(window._senateData).call(parl);
+})();
+</script>!}
+
+<span class="tooltip-text" title="Republican Party" style="color: #c00000;">**Republicans**</span>: [+ rep_senate_r +] seats 
+<span class="tooltip-text" title="Democratic Party" style="color: #0015bc;">**Democrats**</span>: [+ dem_senate_r +] seats 
+[? if liberal_split = 1 : <span class="tooltip-text" title="Liberal Republican Party" style="color: #DAA520;">**Lib Republicans**</span>: [+ lib_senate_r +] seats, ?]
+<span class="tooltip-text" title="Other" style="color: #00cc00;">**Other**</span>: [+ other_senate_r +] seats
+
+[? if rep_majority = 1 : Budget: [+ budget +] ?]
+
+Next House election: [+ next_house_election_month : month +] [+ next_house_election_year +]
+
+Next Senate election: [+ next_senate_election_month : month +] [+ next_senate_election_year +]
+
+= Economics
+
+Inflation: [+ inflation_2 +]%
+
+[? if black_thursday_seen = 1 : Unemployment: [+ unemployed_2 +]% ?]
+
+Economic growth: [+ economic_growth_2 +]%
+
+# = Public Opinion
+
+@politics
+
+= Inter-party Relations
+
+**{!<span class="tooltip-text" title="Democratic Party" style="color: #0015bc;">Democrats</span>!}**: [+ dem_relation : relationships +]
+
+[? if liberal_split = 1 : **{!<span class="tooltip-text" title="Liberal Republican Party" style="color: #DAA520;">Lib. Rep.</span>!}**: [+ liberal_relation : relationships +] ?]
+
+= Internal Factions of the Party
+
+**{!<span class="tooltip-text" title="The Radicals support total equality for the freedmen and believe in retribution" style="color: #7A1F5C;">Radical</span>!}** strength: [+ radical_strength : strength +], dissent: [+ radical_dissent : dissent +]
+
+**{!<span class="tooltip-text" title="The Moderates follow the ideas of Lincoln and quick reintegration of the south" style="color: #9D2933;">Moderate</span>!}** strength: [+ moderate_strength : strength +], dissent: [+ moderate_dissent : dissent +]
+
+**{!<span class="tooltip-text" title="Oppose the more ideas of the Radical Republicans and sought a less extreme path for southern reintegration" style="color: #B5651D;">Conservative</span>!}** strength: [+ conservative_strength : strength +], dissent: [+ conservative_dissent : dissent +]
+
+[? if liberal_split = 0 : **{!<span class="tooltip-text" title="Support civil liberties and free markets, but are skeptical of strong federal enforcement of racial equality or occupation policies" style="color: #DAA520;">Liberal</span>!}** strength: [+ liberal_strength : strength +], dissent: [+ liberal_dissent : dissent +] ?]
+
+[? if liberal_split = 1 : The Liberal faction has broken away to form the Liberal Republican Party. ?]
+
+@paramilitaries
+
+= Paramilitaries
+
+{!<span class="tooltip-text" title="The Ku Klux Klan is a white supremacist group aimed against Reconstruction governments and freedmen.">KKK</span>!} Strength: [+ kkk_strength +] thousand
+
+KKK Militarization: [+ kkk_militancy : militancy +]
+
+[? if whiteL_formed = 1 : {!<span class="tooltip-text" title="The White League, also known as the White Man's League is a white supremacist paramilitary terrorist organization">White League</span>!} Strength: [+ whiteL_strength +] thousand ?]
+
+[? if whiteL_formed = 1 : White League Militarization: [+ whiteL_militancy : militancy +] ?]
+
+{!<span class="tooltip-text" title=" The Union League is a Republican-aligned patriotic society defending Black civil rights and Reconstruction.">Union League</span>!} Strength: [+ Union_League_strength +] thousand
+
+Union League Militancy: [+ Union_League_militancy : militancy +]
+
+= Official Forces
+
+U.S Army: [+ army_strength +] thousand troops.
+
+Army Loyalty: [+ army_loyalty : loyalty +]
+
+South Army: [+ South_army_strength +]
+
+U.S Navy: [+ navy_strength +]
+
+Federal Police: [+ Us_police_strength +] thousand members.
+
+Police loyalty: [+ Us_police_loyalty : loyalty +]
+
+[? if state_militia_formed = 1 : State militia strength: [+ state_militia_strength +] ?]
+
+@polls
+
+= Projected election results
+
+(if the election were to be held now):
+
+Senate:
+
+<span style="color: #c00000;">**Republican**</span>: [+ rep_senate_pro +] seats
+
+<span style="color: #0015bc;">**Democrats**</span>: [+ dem_senate_pro +] seats
+
+[? if liberal_split = 1 : <span style="color: #DAA520;">**Liberal Republicans**</span>: [+ lib_senate_pro +] seats ?]
+
+<span style="color: #00cc00;">**Other**</span>: [+ other_senate_pro +] seats
+
+House:
+
+<span style="color: #c00000;">**Republican**</span>: [+ rep_r_pro +] seats
+
+<span style="color: #0015bc;">**Democrats**</span>: [+ dem_r_pro +] seats
+
+[? if liberal_split = 1 : <span style="color: #DAA520;">**Liberal Republicans**</span>: [+ lib_r_pro +] seats ?]
+
+<span style="color: #00cc00;">**Other**</span>: [+ other_r_pro +] seats
+
+**Detailed results for each demographic**
+
+Workers: <span style="color: #c00000;">**Republican**</span>: [+ workers_rep +]%, <span style="color: #0015bc;">**Democrats**</span>: [+ workers_dem +]%[? if liberal_split = 1 : , <span style="color: #DAA520;">**Liberal Republicans**</span>: [+ workers_lib +]% ?], <span style="color: #00cc00;">**Other**</span>: [+ workers_other +]%
+
+Rural: <span style="color: #c00000;">**Republican**</span>: [+ rural_rep +]%, <span style="color: #0015bc;">**Democrats**</span>: [+ rural_dem +]%[? if liberal_split = 1 : , <span style="color: #DAA520;">**Liberal Republicans**</span>: [+ rural_lib +]% ?], <span style="color: #00cc00;">**Other**</span>: [+ rural_other +]%
+
+Middle Class: <span style="color: #c00000;">**Republican**</span>: [+ middle_class_rep +]%, <span style="color: #0015bc;">**Democrats**</span>: [+ middle_class_dem +]%[? if liberal_split = 1 : , <span style="color: #DAA520;">**Liberal Republicans**</span>: [+ middle_class_lib +]% ?], <span style="color: #00cc00;">**Other**</span>: [+ middle_class_other +]%
+
+Freedmen ([+ freedmen_turnout +]% turnout): <span style="color: #c00000;">**Republican**</span>: [+ freemen_rep +]%, <span style="color: #0015bc;">**Democrats**</span>: [+ freemen_dem +]%[? if liberal_split = 1 : , <span style="color: #DAA520;">**Liberal Republicans**</span>: [+ freemen_lib +]% ?], <span style="color: #00cc00;">**Other**</span>: [+ freemen_other +]% 
+
+Immigrant Laborers: <span style="color: #c00000;">**Republican**</span>: [+ immigrant_laborers_rep +]%, <span style="color: #0015bc;">**Democrats**</span>: [+ immigrant_laborers_dem +]%[? if liberal_split = 1 : , <span style="color: #DAA520;">**Liberal Republicans**</span>: [+ immigrant_laborers_lib +]% ?], <span style="color: #00cc00;">**Other**</span>: [+ immigrant_laborers_other +]%
+
+Unemployed: <span style="color: #c00000;">**Republican**</span>: [+ unemployed_rep +]%, <span style="color: #0015bc;">**Democrats**</span>: [+ unemployed_dem +]%[? if liberal_split = 1 : , <span style="color: #DAA520;">**Liberal Republicans**</span>: [+ unemployed_lib +]% ?], <span style="color: #00cc00;">**Other**</span>: [+ unemployed_other +]%
+
+@cabinet
+
+= Cabinet
+
+Secretary of State: [+ sect_state +] ([+ sect_state_party +]) [? if sect_state_party = "R" and foreign_policy_timer <= 0 and has_event = 0 : <button class="cabinet_jump" onclick="window.dendryUI.dendryEngine.goToScene('foreign_policy')">Consult</button> ?][? if (sect_state_party = "R" and foreign_policy_timer > 0) or has_event > 0 : <span class="cabinet_jump_disabled" title="[+ foreign_policy_timer +] months remaining">Consult</span> ?]
+
+Secretary of Interior: [+ sect_interior +] ([+ sect_interior_party +]) [? if sect_interior_party = "R" and interior_policy_timer <= 0 and has_event = 0 : <button class="cabinet_jump" onclick="window.dendryUI.dendryEngine.goToScene('Interior_policy')">Consult</button> ?][? if (sect_interior_party = "R" and interior_policy_timer > 0) or has_event > 0 : <span class="cabinet_jump_disabled" title="[+ interior_policy_timer +] months remaining">Consult</span> ?]
+
+Attorney General: [+ attorney_general +] ([+ attorney_general_party +]) [? if attorney_general_party = "R" and judiciary_timer <= 0 and has_event = 0 : <button class="cabinet_jump" onclick="window.dendryUI.dendryEngine.goToScene('judiciary')">Consult</button> ?][? if (attorney_general_party = "R" and judiciary_timer > 0) or has_event > 0 : <span class="cabinet_jump_disabled" title="[+ judiciary_timer +] months remaining">Consult</span> ?]
+
+Secretary of War: [+ sect_war +] ([+ sect_war_party +]) [? if sect_war_party = "R" and military_policy_timer <= 0 and has_event = 0 : <button class="cabinet_jump" onclick="window.dendryUI.dendryEngine.goToScene('military_policy')">Consult</button> ?][? if (sect_war_party = "R" and military_policy_timer > 0) or has_event > 0 : <span class="cabinet_jump_disabled" title="[+ military_policy_timer +] months remaining">Consult</span> ?]
+
+Secretary of Treasury: [+ sect_treasury +] ([+ sect_treasury_party +]) [? if rep_majority = 1 and (fiscal_policy_timer = 0 or monetary_policy_timer <= 0) and has_event = 0 : <button class="cabinet_jump" onclick="window.dendryUI.dendryEngine.goToScene('treasury_chooser')">Consult</button> ?][? if (rep_majority = 1 and fiscal_policy_timer > 0 and monetary_policy_timer > 0) or has_event > 0 : <span class="cabinet_jump_disabled" title="Both Treasury matters on cooldown">Consult</span> ?]
+
+Secretary of Agriculture: [+ sect_agriculture +] ([+ sect_agriculture_party +]) [? if sect_agriculture_party = "R" and agricultural_policy_timer <= 0 and has_event = 0 : <button class="cabinet_jump" onclick="window.dendryUI.dendryEngine.goToScene('agricultural_policy')">Consult</button> ?][? if (sect_agriculture_party = "R" and agricultural_policy_timer > 0) or has_event > 0 : <span class="cabinet_jump_disabled" title="[+ postmaster_policy_timer +] months remaining">Consult</span> ?]
+
+Postmaster General: [+ sect_postmaster +] ([+ sect_postmaster_party +]) [? if sect_postmaster_party = "R" and postmaster_policy_timer <= 0 and has_event = 0 : <button class="cabinet_jump" onclick="window.dendryUI.dendryEngine.goToScene('post_policy')">Consult</button> ?][? if (sect_postmaster_party = "R" and postmaster_policy_timer > 0) or has_event > 0 : <span class="cabinet_jump_disabled" title="[+ postmaster_policy_timer +] months remaining">Consult</span> ?]
+
+@reconstruction
+
+= Reconstruction
+
+Support for Reconstruction: [+ reconstruction_support +]%
+
+Plan: [? if Johnson_plan = 1: Johnson's Plan ?][? if Moderate_plan = 1: Moderate Plan ?][? if Radical_plan = 1: Radical Plan ?][? if Johnson_plan = 0 and Moderate_plan = 0 and Radical_plan = 0: No plan active yet ?]
+
+= State Reconstruction Level
+
+[? if reconstructionPlanActive = 0: No Reconstruction plan has been enacted yet. State readmission scores will appear once a plan is in place. ?]
+
+Virginia: [? if reconstructionPlanActive = 1: Reconstruction Score: [+ VA_reconstructionScore +] / [? if Radical_plan = 1: 50 ?][? if Moderate_plan = 1: 35 ?][? if Johnson_plan = 1: 20 ?] Admission Status: [? if VA_admitted = 1: Admitted ?][? if VA_canReadmit = 1 and VA_admitted = 0: Ready for readmission ?][? if VA_canReadmit = 0: Not yet eligible ?] ?]
+
+North Carolina: [? if reconstructionPlanActive = 1: Reconstruction Score: [+ NC_reconstructionScore +] / [? if Radical_plan = 1: 50 ?][? if Moderate_plan = 1: 35 ?][? if Johnson_plan = 1: 20 ?] Admission Status: [? if NC_admitted = 1: Admitted ?][? if NC_canReadmit = 1 and NC_admitted = 0: Ready for readmission ?][? if NC_canReadmit = 0: Not yet eligible ?] ?]
+
+South Carolina: [? if reconstructionPlanActive = 1: Reconstruction Score: [+ SC_reconstructionScore +] / [? if Radical_plan = 1: 50 ?][? if Moderate_plan = 1: 35 ?][? if Johnson_plan = 1: 20 ?] Admission Status: [? if SC_admitted = 1: Admitted ?][? if SC_canReadmit = 1 and SC_admitted = 0: Ready for readmission ?][? if SC_canReadmit = 0: Not yet eligible ?] ?]
+
+Georgia: [? if reconstructionPlanActive = 1: Reconstruction Score: [+ GA_reconstructionScore +] / [? if Radical_plan = 1: 50 ?][? if Moderate_plan = 1: 35 ?][? if Johnson_plan = 1: 20 ?] Admission Status: [? if GA_admitted = 1: Admitted ?][? if GA_canReadmit = 1 and GA_admitted = 0: Ready for readmission ?][? if GA_canReadmit = 0: Not yet eligible ?] ?]
+
+Alabama: [? if reconstructionPlanActive = 1: Reconstruction Score: [+ AL_reconstructionScore +] / [? if Radical_plan = 1: 50 ?][? if Moderate_plan = 1: 35 ?][? if Johnson_plan = 1: 20 ?] Admission Status: [? if AL_admitted = 1: Admitted ?][? if AL_canReadmit = 1 and AL_admitted = 0: Ready for readmission ?][? if AL_canReadmit = 0: Not yet eligible ?] ?]
+
+Florida: [? if reconstructionPlanActive = 1: Reconstruction Score: [+ FL_reconstructionScore +] / [? if Radical_plan = 1: 50 ?][? if Moderate_plan = 1: 35 ?][? if Johnson_plan = 1: 20 ?] Admission Status: [? if FL_admitted = 1: Admitted ?][? if FL_canReadmit = 1 and FL_admitted = 0: Ready for readmission ?][? if FL_canReadmit = 0: Not yet eligible ?] ?]
+
+Mississippi: [? if reconstructionPlanActive = 1: Reconstruction Score: [+ MS_reconstructionScore +] / [? if Radical_plan = 1: 50 ?][? if Moderate_plan = 1: 35 ?][? if Johnson_plan = 1: 20 ?] Admission Status: [? if MS_admitted = 1: Admitted ?][? if MS_canReadmit = 1 and MS_admitted = 0: Ready for readmission ?][? if MS_canReadmit = 0: Not yet eligible ?] ?]
+
+Arkansas: [? if reconstructionPlanActive = 1: Reconstruction Score: [+ AR_reconstructionScore +] / [? if Radical_plan = 1: 50 ?][? if Moderate_plan = 1: 35 ?][? if Johnson_plan = 1: 20 ?] Admission Status: [? if AR_admitted = 1: Admitted ?][? if AR_canReadmit = 1 and AR_admitted = 0: Ready for readmission ?][? if AR_canReadmit = 0: Not yet eligible ?] ?]
+
+Texas: [? if reconstructionPlanActive = 1: Reconstruction Score: [+ TX_reconstructionScore +] / [? if Radical_plan = 1: 50 ?][? if Moderate_plan = 1: 35 ?][? if Johnson_plan = 1: 20 ?] Admission Status: [? if TX_admitted = 1: Admitted ?][? if TX_canReadmit = 1 and TX_admitted = 0: Ready for readmission ?][? if TX_canReadmit = 0: Not yet eligible ?] ?]
+
+Louisiana: [? if reconstructionPlanActive = 1: Reconstruction Score: [+ LA_reconstructionScore +] / [? if Radical_plan = 1: 50 ?][? if Moderate_plan = 1: 35 ?][? if Johnson_plan = 1: 20 ?] Admission Status: [? if LA_admitted = 1: Admitted ?][? if LA_canReadmit = 1 and LA_admitted = 0: Ready for readmission ?][? if LA_canReadmit = 0: Not yet eligible ?] ?]
