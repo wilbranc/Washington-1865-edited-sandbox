@@ -1,0 +1,67 @@
+title: The American Crossing to Cuba
+tags: event
+view-if: war_stage = 1 and invasion_force_strength > 0
+face-image: img/Tr_great_white_fleet_from_photo_nh100349_USS_Connecticut_1907.jpg
+
+= Crossing the Florida Strait
+
+Weeks of preparation have brought the expedition to Florida's southern coast. Thousands of American soldiers board crowded transports as naval officers make final inspections and supply crews load the last provisions. Crowds gather along the docks to watch the fleet depart.
+
+Escorted by the United States Navy, the American Expeditionary Force heads across the Florida Strait toward Cuba. For many of the soldiers aboard, this will be their first combat. Families across the country wait for news of those sailing south.
+
+God bless the troops.
+
+- @Transport: Begin the Crossing
+
+@Transport
+go-to: Battle
+
+@Battle
+
+= Spanish Vessels Appear
+
+The invasion fleet steams south under clear skies. American warships screen the transports as the Cuban coast comes into view.
+
+Then the lookouts spot smoke to the east.
+
+Spanish warships are approaching the convoy, attempting to stop the invasion before the American army can reach Cuba. Signal flags go up across the fleet as guns are loaded and crews take their positions.
+
+- @Fight: Engage the Spanish Fleet!
+- @Retreat: Order a Retreat
+
+@Fight
+subtitle: Defeat the Spanish Navy and secure the crossing.
+on-arrival: {!
+
+    let american_strength = Q.navy_strength * (1.0 + (Q.navy_loyalty * 0.05));
+
+    if (american_strength > Q.spain_navy_strength) {
+        Q.battle_keys_outcome = "victory";
+        Q.war_stage += 1;
+        Q.navy_strength *= 0.95;
+        Q.navy_loyalty *= 1.05;
+    } else {
+        Q.battle_keys_outcome = "defeat";
+        Q.navy_strength *= 0.75;
+        Q.navy_loyalty *= 0.75;
+    }
+
+!}
+go-to: Victory if battle_keys_outcome = "victory"; Defeat if battle_keys_outcome = "defeat"
+
+@Retreat
+subtitle: Abandon the invasion.
+on-arrival: spain_war = 0
+go-to: Defeat
+
+@Victory
+
+= VICTORY
+
+The fleets exchange fire in what newspapers will soon call the Battle of the Florida Strait. American gunnery and maneuvering give the United States the advantage. Several Spanish vessels are sunk or driven ashore while the remainder retreat toward Havana.
+
+- @Continue: Continue
+
+@Continue
+
+The war rages on...

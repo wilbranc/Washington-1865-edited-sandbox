@@ -1,0 +1,276 @@
+title: 1872 Republican National Convention
+subtitle: Republican Candidate for President
+tags: event
+view-if: year = 1872 and month = 5
+max-visits: 1
+
+= Republican National Convention, 1872
+
+[? if president = "Grant" : President Grant seeks a second term. With the prestige of the presidency behind him, no serious challenger has emerged from within the party. The nomination is his if he wants it. ?]
+
+[? if president = "Wade" : President Wade's **<span style="color: #7A1F5C;">radical</span>** tenure has energized the base but alarmed **<span style="color: #B5651D;">conservatives</span>** and **<span style="color: #9D2933;">moderates</span>** alike. Several challengers have emerged, sensing an opportunity to steer the party in a different direction. ?]
+
+[? if president = "Chase" : President Chase's **<span style="color: #9D2933;">moderate</span>** presidency has frustrated the **<span style="color: #7A1F5C;">Radical Wing</span>**. His handling of Reconstruction has drawn criticism from both flanks, and challengers are lining up. ?]
+
+- @Grant_renominate: Ulysses S. Grant
+- @Wade_defend: Defend Wade's nomination
+- @Chase_defend: Defend Chase's nomination
+- @Reno_challenge_Wade: Support a challenger against Wade
+- @Reno_challenge_Chase: Support a challenger against Chase
+
+@Grant_renominate
+title: Renominate President Grant
+view-if: president = "Grant"
+on-arrival: {!
+    Q.Candidate = "Grant";
+    Q.radical_dissent += 2;
+    Q.moderate_dissent -= 3;
+    Q.conservative_dissent -= 3;
+    Q.liberal_dissent += 5;
+    Q.middle_class_rep += 2;
+    Q.rural_rep += 1;
+    Q.workers_rep += 1;
+!}
+face-image: img/portraits/Ulysses_S._Grant_1870-1880.jpg
+go-to: VP_1872
+
+Grant is unanimously renominated. The party rallies around the incumbent president, presenting a united front going into the general election. The <span style="color: #DAA520;">**Liberal Republicans**</span> are dissatisfied with Grant and there dissent increases.
+
+@Wade_defend
+title: Back Wade for renomination
+view-if: president = "Wade"
+choose-if: radical_strength >= 35
+unavailable-subtitle: The **<span style="color: #7A1F5C;">Radical</span>** faction is not strong enough to hold off the challengers.
+on-arrival: {!
+    Q.Candidate = "Wade";
+    Q.radical_dissent -= 5;
+    Q.radical_strength += 4;
+    Q.moderate_dissent += 6;
+    Q.conservative_dissent += 8;
+    Q.liberal_dissent += 10;
+    Q.freemen_rep += 3;
+    Q.workers_rep += 2;
+    Q.middle_class_rep -= 2;
+    Q.rural_rep -= 1;
+!}
+face-image: img/portraits/Benjamin_F_Wade.jpg
+go-to: VP_1872
+
+After a bruising floor fight, Wade secures renomination. The **<span style="color: #7A1F5C;">Radical</span>** wing is triumphant, but the convention has left deep scars. **<span style="color: #B5651D;">Conservative</span>** and **<span style="color: #9D2933;">moderate</span>** delegates walk out muttering about bolt candidates. The <span style="color: #DAA520;">**Liberal Republicans**</span> dissent continues to increase.
+
+@Chase_defend
+title: Back Chase for renomination
+view-if: president = "Chase"
+choose-if: moderate_strength + conservative_strength >= 50
+unavailable-subtitle: The **<span style="color: #9D2933;">Moderate</span>** and **<span style="color: #B5651D;">Conservative</span>** factions are too weak to hold the nomination.
+on-arrival: {!
+    Q.Candidate = "Chase";
+    Q.moderate_dissent -= 3;
+    Q.conservative_dissent -= 3;
+    Q.radical_dissent += 8;
+    Q.liberal_dissent -= 2;
+    Q.middle_class_rep += 3;
+    Q.rural_rep += 2;
+    Q.freemen_rep -= 3;
+    Q.workers_rep -= 1;
+!}
+face-image: img/portraits/Salmon-P-Chase.webp
+go-to: VP_1872
+
+Chase is renominated over **<span style="color: #7A1F5C;">Radical</span>** objections. The **<span style="color: #7A1F5C;">Radical</span>** wing is furious several prominent members publicly refuse to campaign for him. The <span style="color: #DAA520;">**Liberal Republicans**</span>, who had flirted with running their own candidate, are somewhat mollified but not fully satisfied.
+
+@Reno_challenge_Wade
+title: Support a challenger to unseat Wade
+view-if: president = "Wade"
+on-arrival: {!
+
+    // Challenger succeeds based on moderate + conservative + liberal strength vs radical
+    let challengerStrength = (Q.moderate_strength || 0) + (Q.conservative_strength || 0) + (Q.liberal_strength || 0);
+    let wadeStrength = (Q.radical_strength || 0) + 20; // incumbency bonus
+
+    if (challengerStrength > wadeStrength) {
+        if ((Q.conservative_strength || 0) >= (Q.moderate_strength || 0)) {
+            Q.Candidate = "Conkling";
+        } else {
+            Q.Candidate = "Blaine";
+        }
+        Q.radical_dissent += 15;
+        Q.radical_strength -= 5;
+        Q.moderate_dissent -= 5;
+        Q.conservative_dissent -= 5;
+        Q.liberal_dissent -= 3;
+        Q.middle_class_rep += 4;
+        Q.rural_rep += 3;
+        Q.freemen_rep -= 5;
+        Q.workers_rep -= 2;
+        Q.challenger_beat_wade = 1;
+    } else {
+        // Challenge fails, Wade holds
+        Q.Candidate = "Wade";
+        Q.radical_strength += 3;
+        Q.radical_dissent -= 3;
+        Q.moderate_dissent += 5;
+        Q.conservative_dissent += 5;
+        Q.liberal_dissent += 8;
+        Q.challenger_beat_wade = 0;
+    }
+!}
+go-to: challenger_wade_result
+
+@challenger_wade_result
+go-to: VP_1872 if challenger_beat_wade = 1; wade_holds if challenger_beat_wade = 0
+
+@wade_holds
+face-image: img/portraits/Benjamin_F_Wade.jpg
+
+The challenge fails. Despite fierce opposition from **<span style="color: #9D2933;">Moderates</span>** and **<span style="color: #B5651D;">Conservatives</span>**, Wade's **<span style="color: #7A1F5C;">Radical</span>** base holds firm on the convention floor. Wade is renominated, though the battle has wounded the party.
+
+- @VP_1872: Proceed to the Vice Presidential nomination.
+
+@challenger_wade_result_win
+view-if: Candidate = "Conkling" or Candidate = "Blaine"
+go-to: VP_1872
+
+[? if Candidate = "Conkling" : <div class="face-figure"><img src="img/portraits/Roscoe_Conkling.jpg" alt="Roscoe Conkling" class="face-img"></div> ?][? if Candidate = "Blaine" : <div class="face-figure"><img src="img/portraits/James_G._Blaine.jpg" alt="James Blaine" class="face-img"></div> ?]
+
+[? if Candidate = "Conkling" : Roscoe Conkling of New York, backed by the **<span style="color: #B5651D;">conservative</span>** machine, defeats Wade on the convention floor. The **<span style="color: #7A1F5C;">Radicals</span>** are incandescent with rage. ?][? if Candidate = "Blaine" : James Blaine of Maine, the **<span style="color: #9D2933;">moderate</span>** favorite, outmaneuvers Wade's forces and secures the nomination. The **<span style="color: #7A1F5C;">Radicals</span>** feel betrayed. ?]
+
+@Reno_challenge_Chase
+title: Support a challenger to unseat Chase
+view-if: president = "Chase"
+on-arrival: {!
+
+    let challengerStrength = (Q.radical_strength || 0) + (Q.liberal_strength || 0);
+    let chaseStrength = (Q.moderate_strength || 0) + (Q.conservative_strength || 0) + 20;
+
+    if (challengerStrength > chaseStrength) {
+        Q.Candidate = "Grant";
+        Q.radical_dissent -= 5;
+        Q.radical_strength += 4;
+        Q.moderate_dissent += 8;
+        Q.conservative_dissent += 6;
+        Q.liberal_dissent += 5;
+        Q.freemen_rep += 4;
+        Q.workers_rep += 2;
+        Q.middle_class_rep -= 2;
+        Q.challenger_beat_chase = 1;
+    } else {
+        Q.Candidate = "Chase";
+        Q.moderate_dissent -= 3;
+        Q.conservative_dissent -= 3;
+        Q.radical_dissent += 8;
+        Q.challenger_beat_chase = 0;
+    }
+!}
+go-to: challenger_chase_result
+
+@challenger_chase_result
+go-to: VP_1872 if challenger_beat_chase = 1; chase_holds if challenger_beat_chase = 0
+
+@chase_holds
+face-image: img/portraits/Salmon-P-Chase.webp
+
+Chase's **<span style="color: #9D2933;">moderate</span>** and **<span style="color: #B5651D;">conservative</span>** coalition holds on the convention floor. The **<span style="color: #7A1F5C;">Radicals</span>** challenge is beaten back, though the bitterness will linger through the campaign.
+
+- @VP_1872: Proceed to the Vice Presidential nomination.
+
+@VP_1872
+
+= Vice Presidential Nomination
+
+With the presidential nominee chosen, the convention turns to the question of the Vice Presidency. The right running mate can balance the ticket and shore up wavering factions.
+
+Our candidate is **[+ Candidate +]**.
+
+- @Wilson_VP: Henry Wilson (Massachusetts)
+- @Colfax_VP: Schuyler Colfax (Indiana)
+- @Maynard_VP: Horace Maynard (Tennessee)
+- @Davis_VP: David Davis (Illinois)
+
+@Wilson_VP
+subtitle: **<span style="color: #7A1F5C;">Radical Republican</span>**. Strong labor ties and abolitionist credentials.
+on-arrival: {!
+    Q.VPCandidate = "Wilson";
+    Q.radical_dissent -= 4;
+    Q.radical_strength += 3;
+    Q.moderate_dissent += 2;
+    Q.conservative_dissent += 3;
+    Q.workers_rep += 4;
+    Q.freemen_rep += 3;
+    Q.immigrant_laborers_rep += 2;
+    Q.middle_class_rep -= 1;
+!}
+face-image: img/portraits/Henry_Wilson,_VP_of_the_United_States.jpg
+go-to: convention_end_1872
+
+Henry Wilson, the "Natick Cobbler," brings strong **<span style="color: #7A1F5C;">Radical</span>** and labor credentials to the ticket. A former shoemaker turned senator, his working-class origins appeal to Northern industrial workers. He is deeply committed to Black civil rights, which energizes the freedmen vote but alarms **<span style="color: #B5651D;">conservatives</span>**.
+
+@Colfax_VP
+subtitle: **<span style="color: #9D2933;">Moderate</span>**. Popular Speaker of the House, broadly acceptable to the party.
+on-arrival: {!
+    Q.VPCandidate = "Colfax";
+    Q.moderate_strength += 3;
+    Q.moderate_dissent -= 3;
+    Q.conservative_dissent -= 2;
+    Q.radical_dissent += 2;
+    Q.middle_class_rep += 3;
+    Q.rural_rep += 2;
+    Q.workers_rep += 1;
+!}
+face-image: img/portraits/Schuyler_Colfax,_photo_portrait_seated,_c1855-1865.jpg
+go-to: convention_end_1872
+
+Schuyler Colfax, the affable Speaker of the House, is a safe and familiar choice. His **<span style="color: #9D2933;">Moderate</span>** Republicanism and broad name recognition make him acceptable to most factions. The **<span style="color: #7A1F5C;">Radicals</span>** are not thrilled, but they will campaign for the ticket.
+
+@Maynard_VP
+subtitle: <span style="color: #B22222;">**Southern Unionist**</span>. Could help carry border states and signal reconciliation.
+on-arrival: {!
+    Q.VPCandidate = "Maynard";
+    Q.conservative_strength += 4;
+    Q.conservative_dissent -= 3;
+    Q.liberal_strength += 2;
+    Q.radical_dissent += 6;
+    Q.rural_rep += 4;
+    Q.freemen_rep -= 3;
+    Q.middle_class_rep += 2;
+    Q.TN_rural_rep += 5;
+    Q.KY_rural_rep += 3;
+    Q.WV_rural_rep += 3;
+!}
+go-to: convention_end_1872
+face-image: img/portraits/Horace_Maynard_-_Brady-Handy.jpg
+
+Horace Maynard of Tennessee is a <span style="color: #B22222;">**Southern Unionist**</span> whose nomination signals the party's desire to build a broader coalition in the upper South. His selection pleases **<span style="color: #B5651D;">conservatives</span>** and border-state <span style="color: #c00000;">**Republicans**</span>, but **<span style="color: #7A1F5C;">Radicals</span>** deeply distrust any overture toward Southern reconciliation.
+
+@Davis_VP
+subtitle: Independent. Lincoln's former campaign manager, pragmatic and broadly trusted.
+choose-if: moderate_strength >= 25
+unavailable-subtitle: The **<span style="color: #9D2933;">moderate</span>** faction is too weak to push Davis onto the ticket.
+on-arrival: {!
+    Q.VPCandidate = "Davis";
+    Q.moderate_strength += 5;
+    Q.liberal_strength += 3;
+    Q.conservative_dissent -= 2;
+    Q.radical_dissent += 4;
+    Q.liberal_dissent -= 4;
+    Q.middle_class_rep += 4;
+    Q.rural_rep += 2;
+    Q.workers_rep += 1;
+    Q.freemen_rep -= 1;
+!}
+go-to: convention_end_1872
+face-image: img/portraits/960px-David_Davis_Supreme_Court_justice_-_Brady-Handy.jpg
+
+David Davis, Lincoln's old friend and former campaign manager, brings a pragmatic independence that appeals to **<span style="color: #9D2933;">moderates</span>** and **<span style="color: #DAA520;">liberals</span>**. He is not a doctrinaire **<span style="color: #7A1F5C;">Radical</span>**, and his selection is seen as a gesture toward the <span style="color: #DAA520;">**Liberal Republicans**</span> dissidents. The **<span style="color: #7A1F5C;">Radical</span>** wing is displeased but not mutinous.
+
+@convention_end_1872
+
+= The Ticket is Set
+
+The <span style="color: #c00000;">**Republican Party**</span> will enter the 1872 election with **[+ Candidate +]** for President and **[+ VPCandidate +]** for Vice President.
+
+[? if liberal_dissent >= 25 : The <span style="color: #DAA520;">**Liberal Republicans**</span> faction is threatening to bolt and run their own candidate. If they do, the anti-<span style="color: #0015bc;">**Democrat**</span> vote will be split. ?]
+
+[? if radical_dissent >= 25 : <span style="color: #7A1F5C;">**Radical Republicans**</span> are openly grumbling about the ticket. Their enthusiasm or lack of it could suppress turnout among freedmen and Northern reformers. ?]
+
+[? if liberal_dissent < 25 and radical_dissent < 25 : The party appears broadly unified behind the ticket. ?]

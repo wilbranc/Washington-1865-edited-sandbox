@@ -1,0 +1,94 @@
+title: Defeat in the Spanish-American War
+tags: event
+view-if: US_lose = 1
+max-visits: 1
+on-arrival: {!
+    Q.radical_strength -= 3;
+    Q.moderate_strength -= 5;
+    Q.conservative_strength -= 2;
+
+    Q.dem_bourbon_strength += 6;
+    Q.dem_reform_strength += 3;
+
+    Q.army_loyalty -= 0.10;
+    Q.navy_loyalty -= 0.05;
+
+    Q.economic_growth -= 0.5;
+    Q.budget -= 2;
+
+    Q.middle_class_dem += 4;
+    Q.rural_dem += 2;
+    Q.workers_dem += 2;
+    Q.war_stage = 5;
+!}
+
+= Defeat in Cuba
+
+The war is over.
+
+The American expeditionary force has withdrawn from Cuba after failing to force Spain's surrender. Months of fighting, heavy expenditures and thousands of casualties have produced none of the objectives Congress set when the war began.
+
+The fleet returns carrying exhausted veterans instead of victors. Planned celebrations are cancelled. Newspapers that once promised a short campaign now ask who is responsible for the defeat.
+
+Spain has retained control of Cuba. Madrid presents the outcome as a victory and a defense of its remaining Caribbean empire.
+
+The political damage is immediate. Republican leaders who supported the war face attacks in Congress and the press. <span style="color: #0015bc;">**Democrats**</span> accuse the administration of wasting American lives on a foreign adventure, while Republicans begin questioning the country's military preparedness.
+
+The War and Navy Departments face demands for reform. Officers begin reviewing the failures of the campaign as the country turns away from the war.
+
+- @peace_terms: Negotiate Peace
+
+@peace_terms
+
+Spain has agreed to end hostilities, but its victory gives Madrid the stronger position at the negotiating table.
+
+American diplomats must now secure the return of prisoners and bring the war to an end. Spain is demanding compensation for the cost of the conflict.
+
+- @pay_indemnity: Pay an indemnity to Spain.
+- @white_peace: Negotiate a white peace.
+
+@pay_indemnity
+subtitle: End the war at any cost.
+choose-if: budget >= 3
+unavailable-subtitle: You're Broke
+on-arrival: {!
+    Q.budget -= 3;
+
+    Q.dem_bourbon_strength += 3;
+    Q.dem_relation += 3;
+
+    Q.radical_dissent += 3;
+    Q.conservative_dissent += 2;
+!}
+
+Spain demands financial compensation for the cost of the war.
+
+The United States agrees to pay an indemnity in exchange for the return of prisoners and a formal end to hostilities. Newspapers condemn the settlement as a national humiliation, while <span style="color: #0015bc;">**Democrats**</span> use it as further evidence of Republican incompetence.
+
+The Treasury absorbs the cost. The political damage will last longer.
+
+- @End: Continue
+
+@white_peace
+subtitle: End the war without compensation.
+on-arrival: {!
+    Q.dem_bourbon_strength += 5;
+    Q.radical_dissent += 2;
+    Q.conservative_dissent += 2;
+!}
+
+After weeks of negotiations, both governments agree to restore the status quo.
+
+Spain retains Cuba and Puerto Rico while the United States abandons its claims arising from the war. No indemnity is paid, but the treaty does little to ease the humiliation of a war fought at great cost with nothing gained.
+
+The Republican administration survives, but its prestige is badly damaged.
+
+- @End: Continue
+
+@End
+
+The nation turns inward.
+
+Debate over military preparedness and overseas intervention returns to Washington. The defeat has also left a simpler question hanging over the Republican Party: who is responsible?
+
+The next election will decide who answers for the war.

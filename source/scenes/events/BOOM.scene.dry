@@ -1,0 +1,22 @@
+title: Economic Boom
+tags: event
+view-if: flag_boom = 1
+max-visits: 1
+on-arrival: flag_boom = 0; boom_ticker_timer = 12; middle_class_rep += 3; workers_rep += 2; rural_rep += 2
+on-display: {!  
+    var cardEl = document.createElement('div');  
+    cardEl.className = "face-figure2";  
+
+    var image = new Image();  
+    image.className = "face-img";  
+    image.src = "img/BOOM.png";  
+
+    cardEl.appendChild(image);  
+    var contentDiv = document.querySelector("#page #mid_panel #content");
+    contentDiv.appendChild(cardEl);
+!}
+
+
+= An Expanding Market
+
+The country has entered a genuine bull market. Railroad shares are rising, factory orders are climbing and credit is flowing freely. Northern industrialists and investors are enjoying the boom, though its foundations have yet to be tested.

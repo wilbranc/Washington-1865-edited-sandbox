@@ -1,0 +1,229 @@
+title: 1872 <span style="color: #0015bc;">**Democratic Party**</span> National Convention
+subtitle: Who will the Democrats nominate?
+tags: event
+view-if: year = 1872 and month = 7
+max-visits: 1
+face-image: img/960px-1872_Democratic_National_Convention_-_Maryland_(cropped).jpg
+
+= Democratic National Convention, 1872
+
+The <span style="color: #0015bc;">**Democratic Party**</span> gathers in Baltimore, divided and badly out of power. Four years of Republican rule have left the party searching for a way back.
+
+[? if liberal_split = 1 : Two strategies have emerged. One faction wants to nominate a <span style="color: #0015bc;">**Democrat**</span> and rebuild the party on its own terms. The other, led by figures such as August Belmont, wants to support the <span style="color: #DAA520;">**Liberal Republican**</span> ticket of Horace Greeley and B. Gratz Brown. Greeley has spent much of his career attacking the <span style="color: #0015bc;">**Democrats**</span>, but he has one advantage: he is running against [+ Candidate +]. ?]
+
+[? if liberal_split = 0 : The party must choose its own standard-bearer. The <span style="color: #0015bc;">**Democrats**</span> must stand on their own. ?]
+
+- @dem_convention_decision: See what the convention decides...
+
+@dem_convention_decision
+on-arrival: {!
+
+// If the Liberal Republican split has occurred, the Democrats
+// weigh fusion against running their own candidate.
+// Now driven by the Reform vs. Bourbon faction system instead of dem_relation.
+
+let reformFloor = (Q.dem_reform_strength || 0) - (Q.dem_reform_dissent || 0) * 0.5;
+let bourbonFloor = (Q.dem_bourbon_strength || 0) - (Q.dem_bourbon_dissent || 0) * 0.5;
+
+if (Q.liberal_split === 1) {
+
+    // Fusion faction: Reform-minded Democrats who see Greeley as a natural ally
+    let fusionStrength = 31 + (reformFloor * 0.8);
+    // High liberal dissent within Republicans means Greeley is weaker, dems less keen
+    fusionStrength -= (Q.liberal_dissent || 0) * 0.3;
+    // Add some randomness
+    fusionStrength += (Math.random() * 20) - 10;
+
+    // Independence faction: Bourbon old guard who refuse to back a lifelong enemy
+    let independenceStrength = 14 + (bourbonFloor * 0.4);
+    independenceStrength += (Math.random() * 20) - 10;
+
+    if (fusionStrength > independenceStrength) {
+        // Dems endorse Greeley
+        Q.dem_candidate_1872 = "Greeley";
+        Q.dem_vp_candidate_1872 = "Brown";
+        Q.greeley_fusion = 1;
+
+        Q.dem_relation -= 5;
+        Q.liberal_relation += 10;
+        Q.liberal_dissent -= 5;
+        Q.liberal_strength += 5;
+
+        Q.dem_reform_strength += 6;
+        Q.dem_reform_dissent = Math.max(0, (Q.dem_reform_dissent || 0) - 4);
+        Q.dem_bourbon_dissent += 8;
+
+        Q.middle_class_dem += 3;
+        Q.rural_dem += 2;
+        Q.workers_dem -= 2;
+        Q.immigrant_laborers_dem -= 3;
+        Q.workers_other += 2;
+        Q.immigrant_laborers_other += 3;
+
+        Q.moderate_dissent += 2;
+
+    } else {
+        // Dems run their own candidate
+        Q.greeley_fusion = 0;
+        Q.dem_independent_1872 = 1;
+
+        Q.dem_bourbon_strength += 6;
+        Q.dem_bourbon_dissent = Math.max(0, (Q.dem_bourbon_dissent || 0) - 4);
+        Q.dem_reform_dissent += 8;
+    }
+
+} else {
+    Q.greeley_fusion = 0;
+    Q.dem_independent_1872 = 1;
+}
+
+// If running independently, pick a candidate based on RNG weighted by game state
+if (Q.dem_independent_1872 === 1) {
+
+    // Each candidate has a base weight, modified by game state
+    let weights = {
+        "Hancock":  50 + (Math.random() * 20),
+        "Thurman":  30 + (Math.random() * 20),
+        "Bayard":   20 + (Math.random() * 20),
+        "Pendleton": 25 + (Math.random() * 20),
+    };
+
+    // Hancock: safe establishment pick, favored when the Bourbon machine is running strong and unified
+    weights["Hancock"] += bourbonFloor * 0.3;
+
+    // Thurman: mild reform credentials, the "Old Roman" of honest government
+    weights["Thurman"] += reformFloor * 0.3;
+
+    // Bayard: the Bourbons' truest favorite, hard money, conservative, Southern-aligned
+    weights["Bayard"] += bourbonFloor * 0.4;
+
+    // Pendleton: the reform/soft-money populist wing's pick
+    weights["Pendleton"] += reformFloor * 0.4;
+
+    // Hancock becomes more likely if Republicans are weak
+    let repStrength = (Q.rep_r || 0) / ((Q.total_house_seats || 241) / 100);
+    if (repStrength < 55) weights["Hancock"] += 15;
+
+    // Pendleton more likely if economic distress is high
+    if ((Q.unemployed || 0) > 8) weights["Pendleton"] += 15;
+    if ((Q.inflation || 0) < 0) weights["Pendleton"] += 10;
+
+    // Pick winner via weighted random
+    let totalWeight = Object.values(weights).reduce((a, b) => a + b, 0);
+    let roll = Math.random() * totalWeight;
+    let cumulative = 0;
+    let chosen = "Hancock";
+    for (let [candidate, weight] of Object.entries(weights)) {
+        cumulative += weight;
+        if (roll <= cumulative) {
+            chosen = candidate;
+            break;
+        }
+    }
+
+    Q.dem_candidate_1872 = chosen;
+
+    // Apply effects based on who won
+    if (chosen === "Hancock") {
+        Q.dem_vp_candidate_1872 = "English";
+        Q.dem_relation += 8;
+        Q.liberal_relation -= 5;
+        Q.workers_dem += 4;
+        Q.rural_dem += 5;
+        Q.middle_class_dem += 3;
+        Q.immigrant_laborers_dem += 3;
+        Q.unemployed_dem += 3;
+        Q.workers_rep -= 2;
+        Q.rural_rep -= 2;
+        Q.moderate_dissent += 3;
+        Q.conservative_dissent += 2;
+        Q.liberal_dissent += 4;
+
+        Q.dem_bourbon_strength += 4;
+        Q.dem_bourbon_dissent = Math.max(0, (Q.dem_bourbon_dissent || 0) - 3);
+        Q.dem_reform_dissent += 3;
+    }
+    else if (chosen === "Thurman") {
+        Q.dem_vp_candidate_1872 = "Hendricks";
+        Q.dem_relation += 5;
+        Q.liberal_relation -= 3;
+        Q.workers_dem += 3;
+        Q.rural_dem += 4;
+        Q.middle_class_dem += 1;
+        Q.immigrant_laborers_dem += 2;
+        Q.OH_rural_dem += 5;
+        Q.OH_workers_dem += 4;
+        Q.OH_middle_class_dem += 3;
+        Q.moderate_dissent += 1;
+        Q.liberal_dissent += 2;
+
+        Q.dem_reform_strength += 4;
+        Q.dem_reform_dissent = Math.max(0, (Q.dem_reform_dissent || 0) - 3);
+        Q.dem_bourbon_dissent += 2;
+    }
+    else if (chosen === "Bayard") {
+        Q.dem_vp_candidate_1872 = "Thurman";
+        Q.dem_relation += 3;
+        Q.liberal_relation -= 2;
+        Q.rural_dem += 5;
+        Q.middle_class_dem += 4;
+        Q.workers_dem -= 1;
+        Q.immigrant_laborers_dem += 1;
+        Q.KY_rural_dem += 4;
+        Q.MD_rural_dem += 4;
+        Q.DE_rural_dem += 5;
+        Q.MO_rural_dem += 3;
+        Q.conservative_dissent += 3;
+        Q.liberal_dissent += 3;
+        Q.radical_dissent -= 2;
+
+        Q.dem_bourbon_strength += 6;
+        Q.dem_bourbon_dissent = Math.max(0, (Q.dem_bourbon_dissent || 0) - 4);
+        Q.dem_reform_dissent += 6;
+    }
+    else if (chosen === "Pendleton") {
+        Q.dem_vp_candidate_1872 = "Hancock";
+        Q.dem_relation += 4;
+        Q.liberal_relation -= 6;
+        Q.workers_dem += 6;
+        Q.unemployed_dem += 5;
+        Q.rural_dem += 4;
+        Q.middle_class_dem -= 2;
+        Q.immigrant_laborers_dem += 3;
+        Q.workers_rep -= 3;
+        Q.unemployed_rep -= 3;
+        Q.rural_rep -= 2;
+        Q.inflation += 0.2;
+        Q.liberal_dissent -= 5;
+        Q.moderate_dissent += 4;
+        Q.conservative_dissent += 5;
+
+        Q.dem_reform_strength += 5;
+        Q.dem_reform_dissent = Math.max(0, (Q.dem_reform_dissent || 0) - 4);
+        Q.dem_bourbon_dissent += 6;
+    }
+}
+!}
+go-to: dem_convention_end
+
+@dem_convention_end
+
+= The <span style="color: #0015bc;">**Democrats**</span> Have Chosen
+
+[? if greeley_fusion = 1 : <div class="face-figure"><img src="img/portraits/500px-Horace_Greeley_restored.jpg" alt="Horace Greeley" class="face-img"></div> ?][? if dem_candidate_1872 = "Hancock" : <div class="face-figure"><img src="img/portraits/Gen._Winfield_S._Hancock_-_NARA_-_529369_(cropped,_retouched).jpg" alt="Winfield Hancock" class="face-img"></div> ?][? if dem_candidate_1872 = "Thurman" : <div class="face-figure"><img src="img/portraits/Allen_G._Thurman_-_Brady-Handy.jpg" alt="Allen Thurman" class="face-img"></div> ?][? if dem_candidate_1872 = "Bayard" : <div class="face-figure"><img src="img/portraits/960px-Thomas_F._Bayard,_Brady-Handy_photo_portrait,_circa_1870-1880_(cropped)(b).jpg" alt="Thomas Bayard" class="face-img"></div> ?][? if dem_candidate_1872 = "Pendleton" : <div class="face-figure"><img src="img/portraits/250px-GeorgeHPendleton.png" alt="George Pendleton" class="face-img"></div> ?]
+
+[? if greeley_fusion = 1 : After bitter debate, the convention endorses the <span style="color: #DAA520;">**Liberal Republican**</span> ticket. Horace Greeley and B. Gratz Brown will now carry the <span style="color: #0015bc;">**Democratic**</span> nomination alongside the <span style="color: #DAA520;">**Liberal Republican**</span> one. Some delegates object loudly, while several Southern delegates leave the convention. The chairman describes the arrangement as a "coalition of necessity." ?]
+
+[? if greeley_fusion = 0 : The old guard prevails. The convention nominates its own ticket: [+ dem_candidate_1872 +] for President and [+ dem_vp_candidate_1872 +] for Vice President. ?]
+
+[? if dem_candidate_1872 = "Hancock" : General Hancock is seen as the <span style="color: #0015bc;">**Democrats'**</span> strongest candidate. The <span style="color: #c00000;">**Republicans**</span> will have to take the race seriously. ?]
+
+[? if dem_candidate_1872 = "Thurman" : The "Old Roman" is a dependable choice. Ohio, once safely Republican, becomes a genuine battleground. ?]
+
+[? if dem_candidate_1872 = "Bayard" : Bayard offers a clear conservative alternative to the <span style="color: #c00000;">**Republicans**</span>, though his hard-money views may cost him support among working-class voters. ?]
+
+[? if dem_candidate_1872 = "Pendleton" : Pendleton's financial platform appeals to workers and farmers but leaves little room for cooperation with the reformers. ?]
+
+[? if greeley_fusion = 0 and liberal_split = 1 : The opposition to [+ Candidate +] is now divided between two tickets. The <span style="color: #c00000;">**Republicans**</span> are the immediate beneficiaries. ?]
+
+[? if greeley_fusion = 1 : The <span style="color: #0015bc;">**Democrats**</span> and <span style="color: #DAA520;">**Liberal Republicans**</span> now have to campaign together despite years of hostility between them. ?]

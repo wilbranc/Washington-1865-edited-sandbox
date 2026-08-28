@@ -1,0 +1,463 @@
+title: 1868 Presidential Election
+subtitle: [+ Candidate +] vs. Seymour[? if liberal_split = 1 : vs. Greeley ?]
+tags: event
+view-if: year = 1868 and month = 11
+max-visits: 1
+
+= Elections, [+ month +] [+ year +]
+
+The Presidential election are to be held now.
+
+[? if liberal_split = 1 : The <span style="color: #DAA520;">**Liberal Republicans**</span> have fielded their own candidate, threatening to split the anti-<span style="color: #0015bc;">**Democrat**</span> vote. ?]
+
+- @POTUS_election_algorithm: May we do our best...
+
+@POTUS_election_algorithm
+on-arrival:{!
+Q.repEVTotal = 0;
+Q.demEVTotal = 0;
+Q.libEVTotal = 0;
+
+// Close states add a small nudge toward historical margins, but
+// player actions can fully override them
+let closeStates = {
+  "VT": 57.14,
+  "MA": 39.53,
+  "KS": 37.65,
+  "TN": 36.86,
+  "RI": 32.98,
+  "NE": 27.82,
+  "ME": 24.82,
+  "IA": 23.84,
+  "MN": 21.76,
+  "WV": 17.66,
+  "SC": 15.86,
+  "MI": 13.96,
+  "MO": 13.92,
+  "WI": 12.50,
+  "IL": 11.38,
+  "NV": 10.78,
+  "NH": 10.46,
+  "OH": 8.00,
+  "AR": 7.36,
+  "NC": 6.82,
+  "PA": 4.40,
+  "CT": 2.98,
+  "IN": 2.78,
+  "AL": 2.50,
+  "CA": 0.47,
+  "OR": -0.74,
+  "NY": -1.18,
+  "NJ": -1.76,
+  "DE": -18.00,
+  "GA": -28.54,
+  "MD": -34.40,
+  "LA": -41.38,
+  "KY": -49.10
+};
+
+// National swing: how far each party's national support deviates from baseline
+// This means campaigning and events actually move the needle
+let baselineRep = 52;
+let baselinedem = 45;
+let nationalRepSwing = (Q.workers_rep + Q.middle_class_rep + Q.rural_rep + Q.freemen_rep + Q.immigrant_laborers_rep + Q.unemployed_rep) / 6 - baselineRep;
+let nationalDemSwing = (Q.workers_dem + Q.middle_class_dem + Q.rural_dem + Q.freemen_dem + Q.immigrant_laborers_dem + Q.unemployed_dem) / 6 - baselinedem;
+
+for (let state of Q.states) {
+  let votes = { rep: 0, dem: 0, lib: 0 };
+
+  for (let cls of Q.classes) {
+    if (cls === "freemen" && Q.fifthteen == 0) continue;
+
+    let pop = Q[state + "_" + cls] || 0;
+
+    if (cls === "freemen") {
+      pop = pop * (Q.freedmen_turnout / 100);
+    }
+
+    if (pop <= 0) continue;
+
+    let localRep   = Q[state + "_" + cls + "_rep"] || 0;
+    let localDem   = Q[state + "_" + cls + "_dem"] || 0;
+    let localLib   = Q[state + "_" + cls + "_lib"] || 0;
+    let nationalRep   = Q[cls + "_rep"] || 0;
+    let nationalDem   = Q[cls + "_dem"] || 0;
+    let nationalLib   = Q[cls + "_lib"] || 0;
+
+    let adjRep = 0.5 * localRep + 0.5 * nationalRep;
+    let adjDem = 0.5 * localDem + 0.5 * nationalDem;
+    let adjLib = Q.liberal_split ? (0.5 * localLib + 0.5 * nationalLib) : 0;
+
+    // Apply national swing on top
+    adjRep = Math.max(0, adjRep + nationalRepSwing * 0.3);
+    adjDem = Math.max(0, adjDem + nationalDemSwing * 0.3);
+
+    // Apply RNG noise BEFORE normalizing so it actually affects the outcome
+    adjRep *= (0.92 + Math.random() * 0.16);
+    adjDem *= (0.92 + Math.random() * 0.16);
+    if (Q.liberal_split) adjLib *= (0.92 + Math.random() * 0.16);
+
+    let total = adjRep + adjDem + adjLib;
+    if (!total) continue;
+
+    votes.rep += pop * (adjRep / total);
+    votes.dem += pop * (adjDem / total);
+    if (Q.liberal_split) votes.lib += pop * (adjLib / total);
+  }
+
+  if (closeStates[state] !== undefined) {
+    let nudge = closeStates[state] * 0.1; // only 30% as strong as before
+    let randomJitter = (Math.random() * 0.8) - 0.4; // wider jitter
+    let marginTarget = nudge + randomJitter;
+
+    let twoPartyTotal = votes.rep + votes.dem;
+    if (twoPartyTotal > 0) {
+      let currentMargin = ((votes.rep - votes.dem) / twoPartyTotal) * 100;
+      let marginDiff = marginTarget - currentMargin;
+
+      votes.rep += twoPartyTotal * (marginDiff / 200);
+      votes.dem -= twoPartyTotal * (marginDiff / 200);
+
+      votes.rep = Math.max(0, votes.rep);
+      votes.dem = Math.max(0, votes.dem);
+    }
+  }
+
+  // Determine state winner
+  let winner = "rep";
+  if (votes.dem >= votes.rep && votes.dem >= votes.lib) winner = "dem";
+  if (Q.liberal_split && votes.lib >= votes.rep && votes.lib >= votes.dem) winner = "lib";
+
+  Q[state + "_winner"] = winner;
+
+  let color = "#d73027";
+  if (winner === "dem") color = "#4575b4";
+  if (winner === "lib") color = "#DAA520";
+  Q[state.toLowerCase() + "_winner_color"] = color;
+
+
+  let margin = votes.rep - votes.dem;
+  let marginPct = ((Math.abs(margin) / (votes.rep + votes.dem + (votes.lib || 0))) * 100).toFixed(2);
+  console.log(`${state} winner: ${winner}, rep=${votes.rep.toFixed(0)}, dem=${votes.dem.toFixed(0)}, lib=${votes.lib.toFixed(0)}, margin=${marginPct}%`);
+}
+
+// Allocate EVs
+for (let state of Q.states) {
+  let ev = Q[state + "_EV_" + Q.year];
+  if (!ev) continue;
+
+  let w = Q[state + "_winner"];
+  if (w === "rep") Q.repEVTotal += ev;
+  else if (w === "dem") Q.demEVTotal += ev;
+  else if (w === "lib") Q.libEVTotal += ev;
+}
+
+let totalEV = Q.repEVTotal + Q.demEVTotal + Q.libEVTotal;
+let majority = Math.floor(totalEV / 2) + 1;
+
+if (Q.repEVTotal >= majority) Q.potus_winner = "rep";
+else if (Q.demEVTotal >= majority) Q.potus_winner = "dem";
+else if (Q.libEVTotal >= majority) Q.potus_winner = "lib";
+else Q.potus_winner = "house";
+
+if(Q.demEVTotal == 0 && Q.libEVTotal == 0)
+{
+  this.achieve("washington")
+}
+
+
+!}
+on-display: {!
+  var winners = {
+    al: Q.al_winner_color,
+    ar: Q.ar_winner_color,
+    ca: Q.ca_winner_color,
+    co: Q.co_winner_color,
+    ct: Q.ct_winner_color,
+    de: Q.de_winner_color,
+    fl: Q.fl_winner_color,
+    ga: Q.ga_winner_color,
+    il: Q.il_winner_color,
+    in: Q.in_winner_color,
+    ia: Q.ia_winner_color,
+    ks: Q.ks_winner_color,
+    ky: Q.ky_winner_color,
+    la: Q.la_winner_color,
+    me: Q.me_winner_color,
+    md: Q.md_winner_color,
+    ma: Q.ma_winner_color,
+    mi: Q.mi_winner_color,
+    mn: Q.mn_winner_color,
+    ms: Q.ms_winner_color,
+    mo: Q.mo_winner_color,
+    ne: Q.ne_winner_color,
+    nv: Q.nv_winner_color,
+    nh: Q.nh_winner_color,
+    nj: Q.nj_winner_color,
+    ny: Q.ny_winner_color,
+    nc: Q.nc_winner_color,
+    oh: Q.oh_winner_color,
+    or: Q.or_winner_color,
+    pa: Q.pa_winner_color,
+    ri: Q.ri_winner_color,
+    sc: Q.sc_winner_color,
+    tn: Q.tn_winner_color,
+    tx: Q.tx_winner_color,
+    vt: Q.vt_winner_color,
+    va: Q.va_winner_color,
+    wv: Q.wv_winner_color,
+    wi: Q.wi_winner_color,
+    dc: Q.dc_winner_color,
+  };
+
+  // NEW: build results from the percentages saved during on-arrival,
+  // instead of hardcoding two states by hand
+  let results = {};
+  for (let state of Q.states) {
+    let key = state.toLowerCase();
+    let entry = {
+      "Republican": Q[state + "_rep_pct"] || 0,
+      "Democratic": Q[state + "_dem_pct"] || 0,
+    };
+    if (Q.liberal_split && (Q[state + "_lib_pct"] || 0) > 0) {
+      entry["Liberal Republican"] = Q[state + "_lib_pct"];
+    }
+    results[key] = entry;
+  }
+
+  function drawMap() {
+    ElectoralMap.draw({ container: "#electoral-map", winners: winners, results: results });
+  }
+
+  if (typeof ElectoralMap !== 'undefined') {
+    drawMap();
+  } else {
+    var script = document.createElement('script');
+    script.src = 'electoral-map.js';
+    script.onload = drawMap;
+    document.head.appendChild(script);
+  }
+!}
+go-to: potus_menu
+
+{!<div id="electoral-map"></div>!}
+
+{!<table>!}
+{!<tr><td>Party</td><td>Electoral votes</td></tr>!}
+
+{!<tr><td><div class="box" style="background-color:#d73027; outline:2px solid;"></div> !}<span style="color: #c00000;">**Republicans**</span>{!</td><td>!}[+ repEVTotal +] votes{!</td></tr>!}
+
+{!<tr><td><div class="box" style="background-color:#4575b4; outline:2px solid;"></div> !}<span style="color: #0015bc;">**Democrats**</span>{!</td><td>!}[+ demEVTotal +] votes{!</td></tr>!}
+
+{!</table>!}
+
+@potus_menu
+
+- @victory
+- @defeat_dem
+- @house_decides
+- @defeat_O
+
+@victory
+title: <span style="color: #c00000;">**Republicans**</span> won the election!
+subtitle: <span style="color: #c00000;">**Republicans**</span>: [+ repEVTotal +] electoral votes
+view-if: potus_winner = "rep"
+on-arrival: {!
+    Q.president = Q.Candidate;
+    Q.vice_president = Q.VPCandidate; 
+    Q.president_party = "rep";
+    
+    // GRANT CABINET
+    if (Q.Candidate == "Grant") {
+        Q.Winner_68 = "Grant";
+        Q.sect_state = "Hamilton Fish";
+        Q.sect_state_party = "R";
+        Q.sect_treasury = "George S. Boutwell";
+        Q.sect_treasury_party = "R";
+        Q.sect_war = "William W. Belknap";
+        Q.sect_war_party = "R";
+        Q.sect_interior = "Jacob D. Cox";
+        Q.sect_interior_party = "R";
+        Q.sect_postmaster = "John A. J. Creswell";
+        Q.sect_postmaster_party = "R";
+        Q.attorney_general = "Ebenezer Rockwood Hoar";
+        Q.attorney_general_party = "R";
+        Q.sect_agriculture = "Norman J. Colman";
+        Q.sect_agriculture_party = "R";
+    }
+    
+    // WADE CABINET
+    if (Q.Candidate == "Wade") {
+        Q.Winner_68 = "Wade";
+        Q.sect_state = "Charles Sumner";
+        Q.sect_state_party = "R";
+        Q.sect_treasury = "Henry C. Carey";
+        Q.sect_treasury_party = "R";
+        Q.sect_war = "Benjamin F. Butler";
+        Q.sect_war_party = "R";
+        Q.sect_interior = "John Palmer Usher";
+        Q.sect_interior_party = "R";
+        Q.sect_postmaster = "Oliver P. Morton";
+        Q.sect_postmaster_party = "R";
+        Q.attorney_general = "Montgomery Blair";
+        Q.attorney_general_party = "R";
+        Q.sect_agriculture = "Isaac Newton";
+        Q.sect_agriculture_party = "R";
+    }
+    
+    // CHASE CABINET
+    if (Q.Candidate == "Chase") {
+        Q.Winner_68 = "Chase";
+        Q.sect_state = "William H. Seward";
+        Q.sect_state_party = "R";
+        Q.sect_treasury = "John Sherman";
+        Q.sect_treasury_party = "R";
+        Q.sect_war = "Edwin M. Stanton";
+        Q.sect_war_party = "R";
+        Q.sect_interior = "Orville H. Browning";
+        Q.sect_interior_party = "R";
+        Q.sect_postmaster = "Alexander W. Randall";
+        Q.sect_postmaster_party = "R";
+        Q.attorney_general = "Henry Stanbery";
+        Q.attorney_general_party = "R";
+        Q.sect_agriculture = "Isaac Newton";
+        Q.sect_agriculture_party = "R";
+    }
+!}
+
+The <span style="color: #c00000;">**Republicans**</span> have managed to get a majority of the electors in this election. [? if president == "Wade": The American people have signaled their mandate for Benjamin Wade to serve as President and work with congress. ?][? if president == "Grant": Grant's war career of saving the Union has made an impression on voters. Hopefully he will lead us into a brighter future. ?][? if president == "Chase": Chase is elected president. The <span style="color: #7A1F5C;">**Radical Republicans**</span> despise him and this could lead to a crisis within the party, but the <span style="color: #9D2933;">**Moderates**</span> and <span style="color: #B5651D;">**Conservatives**</span> are cheering with this return to normalcy in the Executive Mansion. ?]
+
+@defeat_dem
+title: The <span style="color: #0015bc;">**Democrats**</span> have won the presidency.
+subtitle: <span style="color: #0015bc;">**Democrats**</span>: [+ demEVTotal +] electoral votes
+view-if: potus_winner = "dem"
+on-arrival: {!
+    Q.president = "Horatio Seymour";
+    Q.vice_president = Q.VPCandidate; 
+    Q.president_party = "dem";
+    Q.lose_vote = 1;
+    
+    // SEYMOUR CABINET
+    Q.sect_state = "James Guthrie";
+    Q.sect_state_party = "D";
+    Q.sect_treasury = "Francis Preston Blair Sr.";
+    Q.sect_treasury_party = "D";
+    Q.sect_war = "Robert E. Lee";
+    Q.sect_war_party = "D";
+    Q.sect_interior = "James Doolittle";
+    Q.sect_interior_party = "D";
+    Q.sect_postmaster = "William O. Bartow";
+    Q.sect_postmaster_party = "D";
+    Q.attorney_general = "Jeremiah Black";
+    Q.attorney_general_party = "D";
+    Q.sect_agriculture = "Charles Q. Carter";
+    Q.sect_agriculture_party = "D";
+!}
+
+ How did you lose this election? It was programmed to be basically impossible to lose!
+
+@house_decides
+title: No majority with the election going to the House!
+subtitle: Rep: [+ repEVTotal +] | Dem: [+ demEVTotal +][? if liberal_split = 1 : | Lib: [+ libEVTotal +] ?]
+view-if: potus_winner = "house"
+on-arrival: {!
+  if (Q.house_majority >= 2) {
+    Q.potus_winner = "rep";
+    Q.president = Q.Candidate;
+    Q.president_party = "rep"
+    if (Q.Candidate == "Grant") {
+      Q.Winner_68 = "Grant";
+      Q.president_party = "rep"
+      Q.sect_state = "Hamilton Fish";
+      Q.sect_state_party = "R";
+      Q.sect_treasury = "George S. Boutwell";
+      Q.sect_treasury_party = "R";
+      Q.sect_war = "William W. Belknap";
+      Q.sect_war_party = "R";
+      Q.sect_interior = "Jacob D. Cox";
+      Q.sect_interior_party = "R";
+      Q.sect_postmaster = "John A. J. Creswell";
+      Q.sect_postmaster_party = "R";
+      Q.attorney_general = "Ebenezer Rockwood Hoar";
+      Q.attorney_general_party = "R";
+      Q.sect_agriculture = "Norman J. Colman";
+      Q.sect_agriculture_party = "R";
+    }
+    
+    // WADE CABINET
+    if (Q.Candidate == "Wade") {
+        Q.Winner_68 = "Wade";
+        Q.president_party = "rep"
+        Q.sect_state = "Charles Sumner";
+        Q.sect_state_party = "R";
+        Q.sect_treasury = "Henry C. Carey";
+        Q.sect_treasury_party = "R";
+        Q.sect_war = "Benjamin F. Butler";
+        Q.sect_war_party = "R";
+        Q.sect_interior = "John Palmer Usher";
+        Q.sect_interior_party = "R";
+        Q.sect_postmaster = "Oliver P. Morton";
+        Q.sect_postmaster_party = "R";
+        Q.attorney_general = "Montgomery Blair";
+        Q.attorney_general_party = "R";
+        Q.sect_agriculture = "Isaac Newton";
+        Q.sect_agriculture_party = "R";
+    }
+    
+    // CHASE CABINET
+    if (Q.Candidate == "Chase") {
+        Q.Winner_68 = "Chase";
+        Q.president_party = "rep"
+        Q.sect_state = "William H. Seward";
+        Q.sect_state_party = "R";
+        Q.sect_treasury = "John Sherman";
+        Q.sect_treasury_party = "R";
+        Q.sect_war = "Edwin M. Stanton";
+        Q.sect_war_party = "R";
+        Q.sect_interior = "Orville H. Browning";
+        Q.sect_interior_party = "R";
+        Q.sect_postmaster = "Alexander W. Randall";
+        Q.sect_postmaster_party = "R";
+        Q.attorney_general = "Henry Stanbery";
+        Q.attorney_general_party = "R";
+        Q.sect_agriculture = "Isaac Newton";
+        Q.sect_agriculture_party = "R";
+    };
+  } else if (Q.dem_r > Q.rep_r) {
+    Q.potus_winner = "dem";
+    Q.president = "Seymour";
+    Q.president_party = "dem";
+    Q.sect_state = "James Guthrie";
+    Q.sect_state_party = "D";
+    Q.sect_treasury = "Francis Preston Blair Sr.";
+    Q.sect_treasury_party = "D";
+    Q.sect_war = "Robert E. Lee";
+    Q.sect_war_party = "D";
+    Q.sect_interior = "James Doolittle";
+    Q.sect_interior_party = "D";
+    Q.sect_postmaster = "William O. Bartow";
+    Q.sect_postmaster_party = "D";
+    Q.attorney_general = "Jeremiah Black";
+    Q.attorney_general_party = "D";
+    Q.sect_agriculture = "Charles Q. Carter";
+    Q.sect_agriculture_party = "D";
+  } else {
+    Q.potus_winner = "rep";
+    Q.president = Q.Candidate;
+    Q.president_party = "rep";
+  }
+!}
+
+No candidate has secured a majority of electoral votes. Under the Constitution, the election is thrown to the House of Representatives, where each state delegation casts a single vote.
+
+[? if house_majority >= 2 : With <span style="color: #c00000;">**Republicans**</span> controlling a majority of state delegations, the House elects our candidate as President. ?][? if house_majority < 2 : The <span style="color: #0015bc;">**Democratic**</span>-leaning delegations carry the day, and Seymour is elected President by the House. ?]
+
+@defeat_O
+title: Something has gone very wrong.
+subtitle: Other: [+ otherEVTotal +] votes
+view-if: potus_winner = "other"
+on-arrival: president = "???"; president_party = "???"; lose_vote = 1;
+
+This outcome was not supposed to be possible. Someone has been tampering with the console.
+
+**CHEATER!!!!!!!!!!!!!!**

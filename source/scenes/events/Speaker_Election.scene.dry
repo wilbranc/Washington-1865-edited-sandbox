@@ -1,0 +1,231 @@
+title: Election of the Speaker of the House
+new-page: true
+tags: event
+view-if: speaker_election_needed = 1 and rep_majority = 1
+on-arrival: speaker_election_needed = 0;
+priority: -1
+
+= Election of the Speaker
+
+With our majority in the House of Representatives, we must choose a Speaker to preside over the chamber. The Speaker sets the legislative agenda, assigns committee chairmanships. This is not a ceremonial choice.
+
+[? if speaker != "" : The current Speaker is [+ speaker +]. ?]
+
+- @Colfax
+- @Stevens
+- @Blaine
+- @Dawes
+- @Garfield
+- @Washburne
+- @keep_speaker: Keep the current Speaker.
+- @dem_speaker_note
+
+@Colfax
+title: Schuyler Colfax (Indiana)
+subtitle: [? if speaker = "Colfax" : Currently serving: retain him ?][? if speaker != "Colfax" : Moderate Republican. Affable, well-liked across factions. ?]
+view-if: year <= 1869
+on-arrival: {!
+    let wasSpeaker = (Q.speaker === "Colfax");
+    Q.speaker = "Colfax";
+    Q.speaker_party = "R";
+
+    if (!wasSpeaker) {
+        Q.moderate_strength += 4;
+        Q.moderate_dissent -= 3;
+        Q.radical_dissent += 2;
+        Q.conservative_dissent -= 2;
+        Q.liberal_dissent -= 2;
+        Q.middle_class_rep += 2;
+    } else {
+        Q.moderate_dissent -= 2;
+        Q.conservative_dissent -= 1;
+    }
+
+    Q.speaker_boosted_committee = "fiscal_policy";
+    Q.speaker_boost_amount = 2;
+!}
+go-to: speaker_end
+
+Schuyler Colfax, the "Smiler," is elected Speaker. Known for his warm personality and skill at building consensus, he is popular across the party's <span style="color: #9D2933;">**moderate**</span> and <span style="color: #B5651D;">**conservative**</span> wings. <span style="color: #7A1F5C;">**Radicals**</span> tolerate him, if not love him.
+
+[? if speaker = "Colfax" : Colfax continues his tenure. The House settles into its familiar rhythms under his steady hand. ?]
+
+His speakership opens channels to Ways & Means, strengthening our hand on tariff legislation.
+
+@Stevens
+title: Thaddeus Stevens (Pennsylvania)
+subtitle: [? if speaker = "Stevens" : Currently serving ?][? if speaker != "Stevens" : Radical choice. Transforms the speakership into a weapon for Reconstruction. ?]
+view-if: year <= 1868 and stevens_advisor = 1
+on-arrival: {!
+    Q.speaker = "Stevens";
+    Q.speaker_party = "R";
+    Q.moderate_dissent += 5;
+    Q.conservative_dissent += 8;
+    Q.radical_strength += 8;
+    Q.radical_dissent -= 6;
+    Q.liberal_dissent += 4;
+    Q.freemen_rep += 4;
+    Q.rural_dem -= 2;
+    Q.speaker_boosted_committee = "civil_rights";
+    Q.speaker_boost_amount = 3;
+!}
+go-to: speaker_end
+
+Thaddeus Stevens storms into the Speaker's chair like a force of nature. His iron control of the House floor and committee assignments transforms the chamber into an engine of Radical Reconstruction. <span style="color: #0015bc;">**Democrats**</span> are apoplectic. <span style="color: #B5651D;">**Conservative Republicans**</span> are alarmed. <span style="color: #7A1F5C;">**Radicals**</span> are finally satisfied.
+
+@Blaine
+title: James Blaine (Maine)
+subtitle: [? if speaker = "Blaine" : Currently serving ?][? if speaker != "Blaine" : Ambitious moderate. Strong legislator, eye on the presidency. ?]
+view-if: year >= 1868
+on-arrival: {!
+    let wasSpeaker = (Q.speaker === "Blaine");
+    Q.speaker = "Blaine";
+    Q.speaker_party = "R";
+
+    if (!wasSpeaker) {
+        Q.moderate_strength += 5;
+        Q.conservative_strength += 3;
+        Q.radical_dissent += 4;
+        Q.liberal_dissent -= 2;
+        Q.middle_class_rep += 3;
+    }
+
+    Q.speaker_boosted_committee = "fiscal_policy";
+    Q.speaker_boost_amount = 2;
+!}
+go-to: speaker_end
+
+James Blaine of Maine takes the gavel. Energetic, politically cunning, and already cultivating a national profile, Blaine is a skilled legislative operator. He consolidates support from the <span style="color: #9D2933;">**moderate**</span> and <span style="color: #B5651D;">**conservative**</span> wings and proves adept at managing the floor.
+
+His ambitions, however, extend beyond the speakership. Keep an eye on him.
+
+
+@Dawes
+title: Henry Dawes (Massachusetts)
+subtitle: Fiscal conservative, known for probity and reform sympathies.
+view-if: year >= 1867
+on-arrival: {!
+    Q.speaker = "Dawes";
+    Q.speaker_party = "R";
+
+    Q.conservative_strength += 5;
+    Q.conservative_dissent -= 4;
+    Q.radical_dissent += 5;
+    Q.liberal_dissent -= 3;
+    Q.moderate_dissent += 2;
+
+    Q.middle_class_rep += 4;
+    Q.workers_rep -= 2;
+
+    Q.speaker_boosted_committee = "monetary_policy";
+    Q.speaker_boost_amount = 2;
+!}
+go-to: speaker_end
+
+Henry Dawes brings a reputation for financial integrity and reform sympathies to the speakership. His selection satisfies the <span style="color: #B5651D;">**conservative**</span> and <span style="color: #DAA520;">**liberal**</span> factions, who see him as a counterweight to Radical excess.
+
+<span style="color: #7A1F5C;">**Radicals**</span> distrust him. The working class, sensing he will not be their champion, shift slightly.
+
+His speakership strengthens fiscal oversight and accelerates currency legislation.
+
+
+@Garfield
+title: James A. Garfield (Ohio)
+subtitle: Rising star. War hero, moderate Radical, skilled debater.
+view-if: year >= 1869
+on-arrival: {!
+    Q.speaker = "Garfield";
+    Q.speaker_party = "R";
+
+    Q.moderate_strength += 4;
+    Q.radical_dissent -= 2;
+    Q.conservative_dissent += 1;
+    Q.liberal_dissent -= 1;
+
+    Q.workers_rep += 2;
+    Q.rural_rep += 2;
+    Q.freemen_rep += 2;
+
+    Q.speaker_boosted_committee = "civil_rights";
+    Q.speaker_boost_amount = 2;
+!}
+go-to: speaker_end
+
+James Garfield, the self-made man from Ohio and celebrated Union general, brings credibility with both <span style="color: #7A1F5C;">**Radical**</span> and <span style="color: #9D2933;">**moderate**</span> wings. A gifted orator, he commands the floor with natural authority.
+
+His broad appeal reduces factional friction and opens up Reconstruction-minded legislation.
+
+
+@Washburne
+title: Elihu Washburne (Illinois)
+subtitle: Reliably loyal, limited ambition, strong in foreign affairs.
+view-if: year >= 1866 and year <= 1872
+on-arrival: {!
+    Q.speaker = "Washburne";
+    Q.speaker_party = "R";
+
+    Q.moderate_strength += 3;
+    Q.conservative_strength += 2;
+    Q.radical_dissent += 1;
+    Q.liberal_dissent += 2;
+
+    Q.europe_relation += 2;
+
+    Q.speaker_boosted_committee = "judiciary";
+    Q.speaker_boost_amount = 2;
+!}
+go-to: speaker_end
+
+Elihu Washburne, Grant's close political ally from Illinois, takes the gavel. Reliable, unflashy, and content to serve the party rather than himself, he keeps the caucus orderly and the Grant White House happy.
+
+His deep interest in foreign affairs opens new diplomatic avenues.
+
+@keep_speaker
+title: Retain [+ speaker +] as Speaker.
+view-if: speaker != "" and rep_majority >= 2
+on-arrival: moderate_dissent -= 1; conservative_dissent -= 1
+go-to: speaker_end
+
+The House re-elects [+ speaker +] without controversy. Continuity has its value.
+
+@dem_speaker_note
+title: (Democrats hold the House we cannot elect a Speaker.)
+view-if: rep_majority = 0
+go-to: dem_speaker
+
+@dem_speaker
+on-arrival: {!
+    // Michael Kerr (1875) or Samuel Randall (1876)
+    if (Q.year >= 1875) {
+        Q.speaker = "Randall";
+        Q.speaker_party = "D";
+    } else {
+        Q.speaker = "Kerr";
+        Q.speaker_party = "D";
+    }
+
+    Q.radical_dissent += 5;
+    Q.moderate_dissent += 3;
+    Q.reconstruction_support -= 5;
+
+    Q.speaker_boosted_committee = "";
+    Q.speaker_boost_amount = 0;
+!}
+go-to: speaker_end
+
+With the <span style="color: #0015bc;">**Democrats**</span> in control of the House, [+ speaker +] takes the gavel as Speaker. Our legislative agenda is now effectively blocked. Bills that reach the floor will be shaped by <span style="color: #0015bc;">**Democratic**</span> priorities, not ours.
+
+This is the consequence of losing the House. Reconstruction stalls. Our chairmanships are stripped. We can oppose, but we cannot govern.
+
+
+@speaker_end
+title: Finish Voting
+on-arrival: speaker_election_needed = 0
+
+The election of [+ speaker +] as Speaker is complete.
+
+[? if speaker_boosted_committee = "fiscal_policy" : The new Speaker's allies on Ways & Means will smooth the path for fiscal and tariff legislation. ?]
+[? if speaker_boosted_committee = "monetary_policy" : The new Speaker prioritizes currency and banking legislation, speeding it through committee. ?]
+[? if speaker_boosted_committee = "civil_rights" : The new Speaker assigns a Reconstruction Committee favorable to our agenda, speeding civil rights legislation through the House. ?]
+[? if speaker_boosted_committee = "judiciary" : The new Speaker keeps pressure on the courts, speeding judiciary reform through committee. ?]
+[? if speaker_boosted_committee = "" : <span style="color: #0015bc;">**Democrats**</span> controlling the chamber ?]

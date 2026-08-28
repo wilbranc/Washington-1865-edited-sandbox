@@ -1,0 +1,10 @@
+title: Significant Deflation
+tags: event
+view-if: flag_deflation  = 1
+max-visits: 1
+priority: -1
+on-arrival: flag_deflation = 0; deflation_ticker_timer = 12; rural_rep -= 2; rural_dem += 2; conservative_dissent -= 1; radical_dissent += 2
+
+= Prices Are Falling
+
+With the money supply tightening and credit growing scarce, prices across the country are falling. Farmers find their debts harder to repay as crop prices decline. Wall Street investments are losing value by the week, and wealthy investors are pressing Washington to act before the losses spread.

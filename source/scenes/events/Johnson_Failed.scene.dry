@@ -1,0 +1,233 @@
+title: The South Rejects Reconstruction
+subtitle: JOHNSON!!!!!!!!!!!!!!
+on-arrival: {! 
+
+    Q.radical_strength += 1; 
+    Q.moderate_strength -= 1; 
+    Q.conservative_strength -= 2; 
+    Q.liberal_strength -= 2; 
+
+    let seatsRemoved = 0; 
+    let senateSeatsRemoved = 0; 
+
+    for (let state of Q.southern_states) { 
+        if (Q.states.indexOf(state) === -1) continue; 
+        let demVotes = 0; 
+        let totalVotes = 0; 
+    
+        for (let cls of Q.classes) { 
+            let pop = Q[state + "_" + cls] || 0; 
+            let dem = Q[state + "_" + cls + "_dem"] || 0; 
+            let rep = Q[state + "_" + cls + "_rep"] || 0; 
+            let other = Q[state + "_" + cls + "_other"] || 0; 
+            demVotes += pop * dem; 
+            totalVotes += pop * (dem + rep + other); 
+        } 
+        let demShare = totalVotes > 0 ? demVotes / totalVotes : 0.6; 
+        let stateHouseSeats = 6; 
+        let stateDemSeats = Math.round(stateHouseSeats * demShare); 
+        let stateRepSeats = stateHouseSeats - stateDemSeats; 
+        seatsRemoved += stateHouseSeats; 
+        let stateDemSenate = Math.round(2 * demShare); 
+        let stateRepSenate = 2 - stateDemSenate; 
+        senateSeatsRemoved += 2; 
+    } 
+    Q.seats_removed = seatsRemoved; 
+    Q.senate_seats_removed = senateSeatsRemoved;
+    Q.southgone = Q.seats_removed + Q.senate_seats_removed;
+!}
+tags: event
+view-if: year = 1867 and month >= 1
+max-visits: 1
+face-image: img/portraits/Johnson.jpg
+go-to: seats if southgone > 0; Occupation if southgone = 0
+
+@seats
+
+= The South Rejects Reconstruction
+
+The elections of 1866 have delivered an unmistakable message from the former Confederate states.
+
+Under President Johnson's lenient Reconstruction policy, Southern voters have elected former Confederate generals, civil officials, and outspoken opponents of Reconstruction to Congress. Among them is none other than the former Vice President of the Confederacy.
+
+Legally, they possess certificates of election. Whether they possess the loyalty required to sit in Congress is another matter entirely.
+
+Meeting behind closed doors, the Joint Committee on Reconstruction concludes that governments established under Johnson's policies cannot yet be considered truly republican. Until the former Confederate states demonstrate genuine loyalty to the Union and guarantee the civil rights of their citizens, Congress, they argue, has every constitutional right to refuse their representatives.
+
+The decision now rests with us.
+
+- @Refuse: Refuse to seat the Southern delegations in Congress.
+- @allow_seating: Allow the Southern members to take their seats.
+
+@Refuse
+choose-if: radical_strength >= 30
+unavailable-subtitle: Our party doesn't support such radical ideas
+on-arrival: {!    
+    let seatsRemoved = 0;
+    let senateSeatsRemoved = 0;
+    
+    for (let state of Q.southern_states) {
+        if (Q.states.indexOf(state) === -1) continue;
+        
+        let statePop = 0;
+        let demVotes = 0;
+        let totalVotes = 0;
+        
+        for (let cls of Q.classes) {
+            let pop = Q[state + "_" + cls] || 0;
+            let dem = Q[state + "_" + cls + "_dem"] || 0;
+            let rep = Q[state + "_" + cls + "_rep"] || 0;
+            let other = Q[state + "_" + cls + "_other"] || 0;
+            statePop += pop;
+            demVotes += pop * dem;
+            totalVotes += pop * (dem + rep + other);
+        }
+        
+        let demShare = totalVotes > 0 ? demVotes / totalVotes : 0.6;
+        
+        let stateHouseSeats = 6;
+        let stateDemSeats = Math.round(stateHouseSeats * demShare);
+        let stateRepSeats = stateHouseSeats - stateDemSeats;
+        
+        Q.dem_r = Math.max(0, (Q.dem_r || 0) - stateDemSeats);
+        Q.rep_r = Math.max(0, (Q.rep_r || 0) - stateRepSeats);
+        seatsRemoved += stateHouseSeats;
+        
+        let stateDemSenate = Math.round(2 * demShare);
+        let stateRepSenate = 2 - stateDemSenate;
+        Q.dem_senate_r = Math.max(0, (Q.dem_senate_r || 0) - stateDemSenate);
+        Q.rep_senate_r = Math.max(0, (Q.rep_senate_r || 0) - stateRepSenate);
+        senateSeatsRemoved += 2;
+    }
+    
+    Q.southern_seats_refused = 1;
+    Q.seats_removed = seatsRemoved;
+    Q.senate_seats_removed = senateSeatsRemoved;
+    
+    let totalHouse = Q.rep_r + Q.dem_r + (Q.lib_r || 0) + (Q.other_r || 0);
+    let repPct = (Q.rep_r / totalHouse) * 100;
+    if (repPct >= 66.7) { Q.house_majority = 3; }
+    else if (repPct >= 50) { Q.house_majority = 2; }
+    else { Q.house_majority = 0; }
+    
+    let totalSenate = Q.rep_senate_r + Q.dem_senate_r + (Q.other_senate_r || 0);
+    let repSenPct = (Q.rep_senate_r / totalSenate) * 100;
+    if (repSenPct >= 66.7) { Q.sen_majority = 3; }
+    else if (repSenPct >= 50) { Q.sen_majority = 2; }
+    else { Q.sen_majority = 0; }
+    
+    Q.radical_strength += 5;
+    Q.radical_dissent -= 3;
+    Q.moderate_strength += 3;
+    Q.conservative_dissent += 4;
+    Q.dem_relation -= 8;
+!}
+go-to: Occupation
+
+The Joint Committee acts immediately.
+
+When the House Clerk begins the roll call, the names of the Southern delegations are simply omitted. Their members are denied the oath of office and left watching from the galleries as Congress organizes without them.
+
+<span style="color: #0015bc;">**Democrats**</span> denounce the decision as an unconstitutional seizure of power, while President Johnson condemns Congress for usurping the will of the states.
+
+With [+ seats_removed +] House seats and [+ senate_seats_removed +] Senate seats left vacant, the balance of power in Washington shifts dramatically in favor of the <span style="color: #c00000;">**Republicans**</span>.
+
+@allow_seating
+on-arrival: {!
+    Q.radical_dissent += 8;
+    Q.radical_strength -= 3;
+    Q.moderate_strength += 2;
+    Q.conservative_strength += 3;
+    Q.dem_relation += 4;
+!}
+go-to: Occupation
+
+The Southern delegations are admitted without objection.
+
+Former Confederate officers and politicians take their seats beside the men who fought to preserve the Union, a sight that sends shockwaves through the Republican caucus.
+
+<span style="color: #7A1F5C;">**Radical Republicans**</span> erupt in protest, with several members refusing to remain in the chamber during the swearing-in ceremony.
+
+President Johnson's allies celebrate the victory, while the enlarged <span style="color: #0015bc;">**Democratic**</span> caucus suddenly becomes a far more formidable force in Congress.
+
+@Occupation
+
+= Reconstruction Policy
+
+[? if southgone = 0: The elections of 1866 have delivered an unmistakable message from the former Confederate states. ?]
+
+[? if southgone = 0: Under President Johnson's lenient Reconstruction policy, Southern voters have elected former Confederate generals, civil officials, and outspoken opponents of Reconstruction to Congress. Among them is none other than the former Vice President of the Confederacy. ?]
+
+Congress must now decide who will control Reconstruction: the federal government, or the governments President Johnson has already restored.
+
+- @full_plan: Enact full military occupation of the south!
+- @limited_plan: Enact limited federal oversight
+- @Johnson_plan: Maintain Johnson's Reconstruction plan
+
+@full_plan
+choose-if: radical_strength >= 35
+unavailable-subtitle: [? if radical_strength < 35: Most of our party don't support such radical ideas ?]
+on-arrival: {! 
+
+    Q.Radical_plan = 1; 
+    Q.Johnson_plan = 0; 
+    Q.veto += 1; 
+    Q.veto_reason = "Military Reconstruction Act"; 
+    Q.occupation = 2; 
+    Q.radical_strength += 4; 
+    Q.moderate_strength += 2; 
+    Q.freedmen_rep += 2; 
+    Q.rural_rep -= 1; 
+    Q.kkk_strength += 5; 
+    Q.kkk_militancy += 0.2;
+    for (let state of Q.southern_states) {
+        Q[state + "_admitted"] = 0;
+    }
+!}
+
+Congress passes the **Military Reconstruction Act of 1867**.
+
+The former Confederate states are divided into five military districts under Union commanders. Civil governments are placed under federal supervision, Confederate officeholders are removed, and new state constitutions must recognize Black suffrage before readmission.
+
+<span style="color: #7A1F5C;">**Radical Republicans**</span> hail the legislation as the fulfillment of Reconstruction.
+
+Across the South, however, resistance hardens. Secret societies recruit openly, and the Ku Klux Klan begins expanding its campaign of terror.
+
+@limited_plan
+on-arrival: {!
+
+    Q.Johnson_plan = 0; 
+    Q.Moderate_plan = 1; 
+    Q.occupation = 1; 
+    Q.radical_strength -= 4;  
+    Q.moderate_strength += 2; 
+    Q.freedmen_rep += 1; 
+    Q.rural_rep += 1; 
+    Q.conservative_strength += 1; 
+    Q.liberal_strength += 1; 
+    Q.kkk_strength += 3; 
+    Q.kkk_militancy += 0.1;
+    for (let state of Q.southern_states) {
+        Q[state + "_admitted"] = 0;
+    }
+!}
+
+Congress settles on a compromise.
+
+Federal military commanders are given authority to supervise elections and protect the rights of freedmen, but Southern governments retain broad control over their own affairs.
+
+It is enough to reassure many <span style="color: #9D2933;">**Moderate Republicans**</span>, but not enough to satisfy the <span style="color: #7A1F5C;">**Radical**</span> wing.
+
+Reconstruction survives, though its foundations remain uncertain.
+
+@Johnson_plan
+subtitle: Stay the Course
+on-arrival: radical_strength += 5;  radical_dissent += 2; moderate_strength += 1;  moderate_dissent += 1; liberal_dissent +=1
+
+Congress declines to intervene.
+
+President Johnson's Reconstruction policy remains the law of the land, and the former Confederate states continue restoring civilian government with little federal oversight.
+
+Black Codes spread across the South, violence against freedmen intensifies, and many former Confederates quickly return to public office.
+
+<span style="color: #7A1F5C;">**Radical Republicans**</span> condemn the decision as a betrayal of the Union victory, accusing the administration of surrendering the peace it had won on the battlefield.

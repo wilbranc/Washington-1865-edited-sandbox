@@ -1,0 +1,352 @@
+title: The Liberal Republicans Return
+new-page: true
+tags: event
+view-if: liberal_split = 1 and liberal_reunion_triggered = 1 and liberal_reunion_seen = 0
+max-visits: 1
+on-arrival: liberal_reunion_seen = 1
+
+= A Reluctant Homecoming
+
+The <span style="color: #DAA520;">**Liberal Republican**</span> experiment has failed.
+
+Their representation in Congress has withered, their presidential ambitions collapsed, and the <span style="color: #0015bc;">**Democratic Party**</span>, despite every overture, has proven an uneasy home for men who still think of themselves as Union Republicans.
+
+They have forgiven the <span style="color: #c00000;">**Republicans**</span>, many still harbor deep grievances against the party, but because the alternative proved even less appealing.
+
+[? if liberal_relation >= 50 : Our efforts to keep the door open have not gone unnoticed. Some <span style="color: #DAA520;">**Liberal Republican**</span> leaders now speak more favorably of us than they do of the <span style="color: #0015bc;">**Democrats**</span>. ?]
+
+[? if liberal_relation < 50 and liberal_relation >= 25 : Relations have remained cool but never beyond repair. A reunion is possible, though not without concessions. ?]
+
+[? if liberal_relation < 25 : Relations have deteriorated into open hostility. Any reunion would be uneasy at best, as many would sooner burn their party cards than shake hands with us again. ?]
+
+A delegation of <span style="color: #DAA520;">**Liberal Republican**</span> leaders has approached our party aiming to ask what will it take from them to rejoin the Republican Party.
+
+- @welcome_back: Welcome them back with open arms and promises of reform.
+- @civil_service_deal: Offer concrete civil service reform concessions.
+- @patronage_deal: Offer patronage positions to key Liberal leaders.
+- @cold_welcome: Accept their return, but offer nothing.
+
+@welcome_back
+on-arrival: {!
+
+let relationScore = Q.liberal_relation || 30;
+let returnRate = 0.60 + (relationScore / 100) * 0.15;
+let demRate = 0.25 - (relationScore / 100) * 0.10;
+let otherRate = 1 - returnRate - demRate;
+let libHouseSeats = Q.lib_r || 0;
+let libSenateSeats = Q.lib_senate_r || 0;
+let houseReturn = Math.round(libHouseSeats * returnRate);
+let houseDem = Math.round(libHouseSeats * demRate);
+let houseOther = libHouseSeats - houseReturn - houseDem;
+let senateReturn = Math.round(libSenateSeats * returnRate);
+let senateDem = Math.round(libSenateSeats * demRate);
+let senateOther = libSenateSeats - senateReturn - senateDem;
+
+Q.rep_r += houseReturn;
+Q.dem_r += houseDem;
+Q.other_r += houseOther;
+Q.lib_r = 0;
+
+Q.rep_senate_r += senateReturn;
+Q.dem_senate_r += senateDem;
+Q.other_senate_r += senateOther;
+Q.lib_senate_r = 0;
+
+Q.lib_house_returned = houseReturn;
+Q.lib_house_dem = houseDem;
+Q.lib_house_other = houseOther;
+Q.lib_senate_returned = senateReturn;
+
+Q.moderate_strength += 6;
+Q.moderate_dissent += 8;
+Q.liberal_strength += 4;
+Q.liberal_dissent += 12;
+Q.conservative_dissent += 5;
+Q.radical_dissent += 4;
+
+Q.middle_class_rep += 4;
+Q.middle_class_lib = 0;
+Q.workers_rep += 1;
+Q.workers_lib = 0;
+Q.rural_rep += 2;
+Q.rural_lib = 0;
+Q.immigrant_laborers_rep += 1;
+Q.immigrant_laborers_lib = 0;
+Q.unemployed_lib = 0;
+
+// Some voter support bleeds to dems permanently
+Q.middle_class_dem += 2;
+Q.workers_dem += 1;
+Q.dem_reform_strength += 3 + (houseDem + senateDem) * 0.4;
+
+// Reset liberal split
+Q.liberal_split = 0;
+Q.liberal_relation = 40; // still resentful
+
+// Update house majority
+let totalHouse = Q.rep_r + Q.dem_r + Q.other_r;
+let repPct = (Q.rep_r / totalHouse) * 100;
+if (repPct >= 66.7) { Q.house_majority = 3; }
+else if (repPct >= 50) { Q.house_majority = 2; }
+else { Q.house_majority = 0; }
+
+!}
+
+We extend an open hand. <span style="color: #DAA520;">**Liberal Republican**</span> representatives and senators return to the Republican caucus. They reclaim their old seats with little ceremony, looking less like victors than men admitting an unpleasant mistake.
+
+A number of their former colleagues refuse. Some remain with the <span style="color: #0015bc;">**Democrats**</span>; others choose independence. Their departure is permanent.
+
+The reunion restores much of the old coalition, but not its old trust. Moderates and liberals welcome the returnees cautiously, while <span style="color: #B5651D;">**Conservative Republicans**</span> quietly wonder whether they have invited future dissent back into the party.
+
+- @reform_promise: Promise genuine civil service reform to ease the tension.
+- @move_on: Accept the awkwardness and move forward.
+
+@civil_service_deal
+on-arrival: {!
+
+let relationScore = Q.liberal_relation || 30;
+// Civil service deal brings back slightly more
+let returnRate = 0.65 + (relationScore / 100) * 0.15;
+let demRate = 0.20 - (relationScore / 100) * 0.08;
+let otherRate = 1 - returnRate - demRate;
+
+let libHouseSeats = Q.lib_r || 0;
+let libSenateSeats = Q.lib_senate_r || 0;
+
+let houseReturn = Math.round(libHouseSeats * returnRate);
+let houseDem = Math.round(libHouseSeats * demRate);
+let houseOther = libHouseSeats - houseReturn - houseDem;
+
+let senateReturn = Math.round(libSenateSeats * returnRate);
+let senateDem = Math.round(libSenateSeats * demRate);
+let senateOther = libSenateSeats - senateReturn - senateDem;
+
+Q.rep_r += houseReturn;
+Q.dem_r += houseDem;
+Q.other_r += houseOther;
+Q.lib_r = 0;
+
+Q.rep_senate_r += senateReturn;
+Q.dem_senate_r += senateDem;
+Q.other_senate_r += senateOther;
+Q.lib_senate_r = 0;
+
+Q.lib_house_returned = houseReturn;
+Q.lib_house_dem = houseDem;
+Q.lib_house_other = houseOther;
+Q.lib_senate_returned = senateReturn;
+
+Q.moderate_strength += 5;
+Q.moderate_dissent += 6;
+Q.liberal_strength += 6;
+Q.liberal_dissent += 8;
+Q.conservative_dissent += 8; // conservatives hate the civil service concession
+Q.radical_dissent += 3;
+
+// Civil service reform moves the needle on corruption
+Q.civil_service_reform += 1;
+
+Q.middle_class_rep += 6; // civil service reform appeals to middle class
+Q.middle_class_lib = 0;
+Q.rural_rep += 2;
+Q.rural_lib = 0;
+Q.workers_lib = 0;
+Q.immigrant_laborers_lib = 0;
+Q.unemployed_lib = 0;
+Q.middle_class_dem += 1;
+Q.dem_reform_strength += 3 + (houseDem + senateDem) * 0.4;
+
+Q.liberal_split = 0;
+Q.liberal_relation = 50;
+
+let totalHouse = Q.rep_r + Q.dem_r + Q.other_r;
+let repPct = (Q.rep_r / totalHouse) * 100;
+if (repPct >= 66.7) { Q.house_majority = 3; }
+else if (repPct >= 50) { Q.house_majority = 2; }
+else { Q.house_majority = 0; }
+
+!}
+
+We promise meaningful civil service reform: appointments based on merit, limits on the spoils system, and a commission to recommend broader changes.
+
+It is precisely the sort of reform many <span style="color: #DAA520;">**Liberal Republicans**</span> had demanded before leaving.
+
+The offer succeeds where simple reconciliation could not. Representatives and senators return with noticeably less resentment, though they make it clear the promise will be judged by deeds rather than speeches.
+
+A number still refuse. Their break with the party has become too deep for any platform pledge to repair.
+
+<span style="color: #B5651D;">**Conservative Republicans**</span> denounce the agreement as an unnecessary concession to men who abandoned the party in its hour of need.
+
+- @move_on: Accept the new arrangement and move forward.
+
+@patronage_deal
+subtitle: -2 resources
+choose-if: resources >= 2
+unavailable-subtitle: Not enough resources to offer meaningful patronage positions.
+on-arrival: {!
+
+let relationScore = Q.liberal_relation || 30;
+// Patronage works well if relations aren't rock bottom
+let returnRate = 0.62 + (relationScore / 100) * 0.10;
+let demRate = 0.22 - (relationScore / 100) * 0.08;
+let otherRate = 1 - returnRate - demRate;
+
+let libHouseSeats = Q.lib_r || 0;
+let libSenateSeats = Q.lib_senate_r || 0;
+
+let houseReturn = Math.round(libHouseSeats * returnRate);
+let houseDem = Math.round(libHouseSeats * demRate);
+let houseOther = libHouseSeats - houseReturn - houseDem;
+
+let senateReturn = Math.round(libSenateSeats * returnRate);
+let senateDem = Math.round(libSenateSeats * demRate);
+let senateOther = libSenateSeats - senateReturn - senateDem;
+
+Q.rep_r += houseReturn;
+Q.dem_r += houseDem;
+Q.other_r += houseOther;
+Q.lib_r = 0;
+
+Q.rep_senate_r += senateReturn;
+Q.dem_senate_r += senateDem;
+Q.other_senate_r += senateOther;
+Q.lib_senate_r = 0;
+
+Q.lib_house_returned = houseReturn;
+Q.lib_house_dem = houseDem;
+Q.lib_house_other = houseOther;
+Q.lib_senate_returned = senateReturn;
+
+Q.resources -= 2;
+
+Q.moderate_strength += 7;
+Q.moderate_dissent += 5;
+Q.liberal_strength += 3;
+Q.liberal_dissent += 10;
+Q.conservative_dissent += 3;
+Q.radical_dissent += 6; // radicals hate that we rewarded the "traitors"
+
+Q.middle_class_rep += 3;
+Q.middle_class_lib = 0;
+Q.rural_rep += 2;
+Q.rural_lib = 0;
+Q.workers_lib = 0;
+Q.immigrant_laborers_lib = 0;
+Q.unemployed_lib = 0;
+Q.middle_class_dem += 2;
+Q.dem_reform_strength += 4 + (houseDem + senateDem) * 0.5;
+
+Q.liberal_split = 0;
+Q.liberal_relation = 45;
+
+let totalHouse = Q.rep_r + Q.dem_r + Q.other_r;
+let repPct = (Q.rep_r / totalHouse) * 100;
+if (repPct >= 66.7) { Q.house_majority = 3; }
+else if (repPct >= 50) { Q.house_majority = 2; }
+else { Q.house_majority = 0; }
+
+!}
+
+No one mistakes the arrangement for reconciliation, but it works. Representatives and senators return to the Republican fold, persuaded less by shared principle than by the advantages of belonging to the governing party.
+
+A number refuse every offer. They remain with the <span style="color: #0015bc;">**Democrats**</span> or leave public life altogether.
+
+Among <span style="color: #7A1F5C;">**Radical Republicans**</span>, the bargain leaves a bitter taste. Many see it as rewarding the very men who fractured the party.
+
+- @move_on: Accept the new arrangement and move forward.
+
+@cold_welcome
+on-arrival: {!
+
+let relationScore = Q.liberal_relation || 30;
+// Cold welcome: lowest return rate
+let returnRate = 0.50 + (relationScore / 100) * 0.10;
+let demRate = 0.30 - (relationScore / 100) * 0.08;
+let otherRate = 1 - returnRate - demRate;
+
+let libHouseSeats = Q.lib_r || 0;
+let libSenateSeats = Q.lib_senate_r || 0;
+
+let houseReturn = Math.round(libHouseSeats * returnRate);
+let houseDem = Math.round(libHouseSeats * demRate);
+let houseOther = libHouseSeats - houseReturn - houseDem;
+
+let senateReturn = Math.round(libSenateSeats * returnRate);
+let senateDem = Math.round(libSenateSeats * demRate);
+let senateOther = libSenateSeats - senateReturn - senateDem;
+
+Q.rep_r += houseReturn;
+Q.dem_r += houseDem;
+Q.other_r += houseOther;
+Q.lib_r = 0;
+
+Q.rep_senate_r += senateReturn;
+Q.dem_senate_r += senateDem;
+Q.other_senate_r += senateOther;
+Q.lib_senate_r = 0;
+
+Q.lib_house_returned = houseReturn;
+Q.lib_house_dem = houseDem;
+Q.lib_house_other = houseOther;
+Q.lib_senate_returned = senateReturn;
+
+Q.moderate_strength += 3;
+Q.moderate_dissent += 4;
+Q.liberal_strength += 2;
+Q.liberal_dissent += 18; // very high they feel humiliated
+Q.conservative_dissent -= 2; // conservatives actually appreciate the cold shoulder
+Q.radical_dissent += 2;
+
+Q.middle_class_rep += 2;
+Q.middle_class_lib = 0;
+Q.rural_rep += 1;
+Q.rural_lib = 0;
+Q.workers_lib = 0;
+Q.immigrant_laborers_lib = 0;
+Q.unemployed_lib = 0;
+Q.middle_class_dem += 4; // more flee to dems after being snubbed
+Q.dem_reform_strength += 6 + (houseDem + senateDem) * 0.6;
+
+Q.liberal_split = 0;
+Q.liberal_relation = 25; // they resent us
+
+let totalHouse = Q.rep_r + Q.dem_r + Q.other_r;
+let repPct = (Q.rep_r / totalHouse) * 100;
+if (repPct >= 66.7) { Q.house_majority = 3; }
+else if (repPct >= 50) { Q.house_majority = 2; }
+else { Q.house_majority = 0; }
+
+!}
+
+We leave the door open but offer nothing else. No promises. No appointments. No acknowledgment that their grievances were ever justified.
+
+Representatives and senators rejoin the caucus, not out of renewed loyalty, but because they have nowhere else to go. They take their seats quietly, carrying more resentment than enthusiasm.
+
+A number refuse outright. For them, the cold reception settles the matter. They join the <span style="color: #0015bc;">**Democrats**</span> or leave politics altogether.
+
+Those who return become a sullen minority within the party, present but far from reconciled.
+
+- @move_on: Accept the new arrangement and move forward.
+
+@reform_promise
+on-arrival: civil_service_reform += 1; liberal_dissent -= 4; moderate_dissent -= 2; conservative_dissent += 3
+go-to: reunion_end
+
+We promise to take civil service reform seriously. It costs us nothing today but the reformers will hold us to it.
+
+@move_on
+go-to: reunion_end
+
+@reunion_end
+
+= Reunion Complete
+
+The <span style="color: #DAA520;">**Liberal Republican Party**</span> has, for all practical purposes, ceased to exist.
+
+Its banner disappears. Its newspapers gradually return to the <span style="color: #c00000;">**Republican**</span> orbit or close their presses altogether.
+
+The Republican Party emerges larger than before, but not unchanged. The men who never left feel vindicated. Those who returned bring old grievances that will not quickly disappear.
+
+Some, however, could accept neither party. They simply withdraw from public life. [? if lib_house_dem > 2 : Former <span style="color: #DAA520;">**Liberal Republicans**</span> now sit with the <span style="color: #0015bc;">**Democrats**</span>, carrying with them an intimate understanding of our party's strengths and weaknesses. ?]
+
+Whether the reunion restores the Republican coalition or merely postpones its next internal struggle remains uncertain.
