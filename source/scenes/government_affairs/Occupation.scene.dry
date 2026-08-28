@@ -1,0 +1,237 @@
+title: Southern Occupation
+on-arrival: month_actions += 1
+view-if: rep_majority = 1 and occupation >= 1
+card-image: img/Occupation.jpg
+is-card: true
+new-page: true
+tags: cotus_affairs, cabinet
+
+= Dealing with Southern Occupation
+
+With <span style="color: #c00000;">**Republican**</span> control of Congress, we can take a more assertive role in managing Reconstruction. Loyal officials and local defense groups can be supported, hostile organizations challenged, and the army deployed where needed.
+
+[? if enforcement_acts = 1 : The Enforcement Acts are in effect. Federal courts and marshals now have expanded authority to act against organized violence in the South. ?]
+[? if enforcement_acts = 0 and kkk_strength + whiteL_strength >= 400 : Paramilitary violence across the South is reaching a point where our current legal tools are no longer adequate. Congress has begun discussing whether new legislation is needed. ?]
+
+- @enforcement_acts_btn: Pass the Enforcement Acts
+- @Reform
+- @expand_union_league
+- @reinstate_state_militias
+- @demobilize_state_militias
+- @deploy_federal_troops: Send more troops southwards
+- @crackdown_kkk
+- @persecute_kkk
+- @suspend_habeas: Suspend habeas corpus in affected counties
+- @easy_discard
+- @cancel_advisor_action
+
+@enforcement_acts_btn
+title: Pass the Enforcement Acts
+view-if: enforcement_acts = 0 and kkk_strength + whiteL_strength >= 275
+choose-if: rep_majority >= 1 and radical_strength + moderate_strength >= 50
+unavailable-subtitle: [? if rep_majority < 1: We do not control Congress. ?][? if radical_strength + moderate_strength < 50: The <span style="color: #7A1F5C;">**Radical**</span> and <span style="color: #9D2933;">**Moderate**</span> factions are not strong enough to push this through. ?]
+on-arrival: {!
+    Q.enforcement_acts = 1;
+    Q.judicial_reform += 1;
+    Q.radical_strength += 3;
+    Q.moderate_dissent += 2;
+    Q.conservative_dissent += 4;
+    Q.liberal_dissent += 3;
+    Q.dem_relation -= 6;
+    Q.rural_dem += 3;
+    Q.middle_class_dem += 2;
+    Q.freemen_rep += 4;
+    Q.kkk_militancy += 0.05;
+    Q.whiteL_militancy += 0.05;
+!}
+
+Congress passes legislation giving federal courts and marshals direct authority over election interference and organized violence in the South. States that cannot or will not protect their citizens will now face federal intervention without waiting on local cooperation.
+
+The reaction is immediate. <span style="color: #0015bc;">**Democrats**</span> condemn it as military tyranny. <span style="color: #7A1F5C;">**Radical Republicans**</span> celebrate it as the law finally having teeth. Southern paramilitary groups are emboldened in their anger but now face real federal consequences for the first time.
+
+@Reform
+title: Reform the Military Occupation Act of 1867
+view-if: occupation = 1
+choose-if: rep_majority = 1 and conservative_strength <= 35
+unavailable-subtitle: [? if rep_majority < 1: We don't control Congress. ?][? if conservative_strength > 35: The <span style="color: #B5651D;">**Conservatives**</span> will block this. ?]
+on-arrival: occupation = 2
+
+We managed to reform the Military Occupation Act of 1867 to allow full military forces to be directed south to reinforce Reconstruction.
+
+@expand_union_league
+title: Expand the Union League
+choose-if: resource >= 1
+unavailable-subtitle: [? if resource < 1: We lack the funds. ?]
+on-arrival: {!
+    Q.Union_League_strength += Q.enforcement_acts ? 28 : 20;
+    Q.Union_League_militancy += Q.enforcement_acts ? 0.07 : 0.05;
+    Q.freedmen_rep += Q.enforcement_acts ? 2 : 1;
+    Q.middle_class_rep += 1;
+    Q.rural_dem += 1;
+    Q.dem_relation -= 3;
+    Q.resource -= 1;
+!}
+
+We direct new resources into expanding the Union League, organizing freedmen, loyal whites, and veterans into pro-Republican grassroots defense groups.[? if enforcement_acts = 1 : With federal backing now legally established, League organizers are able to operate more openly than before. ?]
+
+@deploy_federal_troops
+go-to: Deploy
+
+@crackdown_kkk
+title: Crack down on the KKK
+choose-if: (enforcement_acts = 1 or (occupation >= 1 and Us_police_loyalty >= 0.6)) and kkk_strength > 0
+unavailable-subtitle: [? if enforcement_acts = 0 and occupation < 1: Federal occupation is required. ?][? if enforcement_acts = 0 and Us_police_loyalty < 0.6: Local police will not cooperate. ?][? if kkk_strength <= 0: The KKK is basically eradicated?]
+on-arrival: {!
+    let base = Q.enforcement_acts ? 0.65 : 0.70;
+    Q.kkk_strength *= base;
+    Q.kkk_militancy -= Q.enforcement_acts ? 0.07 : 0.05;
+    Q.Us_police_loyalty -= 0.05;
+    Q.army_militancy += 0.1;
+    Q.dem_relation -= Q.enforcement_acts ? 8 : 6;
+    Q.rural_dem += 2;
+!}
+
+We launch coordinated action against suspected Klan operations.[? if enforcement_acts = 1 : Federal marshals now have clearer legal standing to make arrests and bring cases before federal rather than local courts, which makes prosecution significantly more viable. ?][? if enforcement_acts = 0 : Some sympathizers within law enforcement slow the operation, but we manage to disrupt their activities. ?]
+
+@persecute_kkk
+title: Prosecute Klan leadership
+view-if: enforcement_acts = 1
+choose-if: occupation >= 1 and judicial_reform >= 2 and Us_police_loyalty >= 0.6 and kkk_strength > 0
+unavailable-subtitle: [? if occupation < 1: Federal presence in the South is required. ?][? if judicial_reform < 2: The courts are not yet capable of handling these prosecutions. ?][? if Us_police_loyalty < 0.6: Law enforcement will not cooperate. ?][? if kkk_strength <= 0: The KKK is basically eradicated?]
+on-arrival: {!
+    Q.kkk_strength *= Q.habeas_suspended ? 0.45 : 0.60;
+    Q.kkk_militancy -= Q.habeas_suspended ? 0.10 : 0.07;
+    Q.kkk_banned = 1;
+    Q.Us_police_loyalty += 0.1;
+    Q.army_militancy += 0.1;
+    Q.dem_relation -= Q.habeas_suspended ? 8 : 5;
+    Q.rural_dem += Q.habeas_suspended ? 2 : 1;
+    Q.freemen_rep += Q.habeas_suspended ? 5 : 3;
+    Q.radical_strength += 2;
+    if (Q.habeas_suspended) {
+        Q.democrats_sue_trigger = 1;
+    }
+!}
+
+Federal grand juries begin indicting Klan leaders under the new statutes. Many are convicted in federal court, which unlike local courts is not packed with sympathizers. The organization is thrown into disarray.[? if habeas_suspended = 1 : With habeas corpus suspended, suspects can be held and tried by military tribunal without the usual procedural delays. The prosecutions move faster and cut deeper than anything a civilian court could have managed. But the scale and nature of these proceedings will not go unchallenged. ?]
+
+@suspend_habeas
+title: Suspend habeas corpus in the worst-affected counties
+view-if: enforcement_acts = 1
+choose-if: occupation >= 2 and kkk_strength + whiteL_strength >= 500 and army_loyalty >= 0.65
+unavailable-subtitle: [? if enforcement_acts = 0: The Enforcement Acts are required before this step can be taken. ?][? if occupation < 2: Full federal occupation is required. ?][? if kkk_strength + whiteL_strength < 500: Conditions are not yet severe enough to justify this measure. ?][? if army_loyalty < 0.65: The army cannot be relied upon for this operation. ?]
+on-arrival: {!
+    Q.habeas_suspended = 1;
+    Q.kkk_strength *= 0.55;
+    Q.whiteL_strength *= 0.70;
+    Q.kkk_militancy += 0.08;
+    Q.whiteL_militancy += 0.06;
+    Q.South_army_strength += 5;
+    Q.freemen_rep += 5;
+    Q.dem_relation -= 12;
+    Q.liberal_dissent += 8;
+    Q.moderate_dissent += 5;
+    Q.conservative_dissent += 6;
+    Q.rural_dem += 4;
+    Q.middle_class_dem += 3;
+    Q.workers_dem += 2;
+    Q.reconstruction_support -= 3;
+!}
+
+The President formally suspends the writ of habeas corpus across several counties where paramilitary violence has made normal law enforcement impossible. Hundreds of suspects are detained without bail. Military tribunals replace hostile local courts.
+
+The results on the ground are real: violence drops sharply in the affected areas, and freedmen report being able to move and organize with less fear. But the political cost is severe. <span style="color: #0015bc;">**Democrats**</span> call it the beginning of military despotism. Even some <span style="color: #c00000;">**Republicans**</span> are uncomfortable. <span style="color: #DAA520;">**Liberal Republican**</span> dissent spikes. Abroad, the action draws criticism from governments that had praised American republican institutions.
+
+The violence has been suppressed. Whether the suppression can last is another question.
+
+@reinstate_state_militias
+title: Reform Southern <span style="color: #c00000;">**Republican**</span> State Militias
+view-if: state_militia_formed = 0
+choose-if: occupation >= 1
+unavailable-subtitle: [? if occupation < 1: We are not occupying the South. ?]
+on-arrival: {!
+    Q.state_militia_formed = 1;
+    Q.state_militia_strength = Q.enforcement_acts ? 55 : 40;
+    Q.Union_League_strength += Q.enforcement_acts ? 28 : 20;
+    Q.Us_police_strength += Q.enforcement_acts ? 15 : 10;
+    Q.freedmen_rep += 1;
+    Q.rural_dem += 2;
+    Q.dem_relation -= 3;
+!}
+
+We authorize Southern state governments to reconstitute their militias under loyal Reconstruction officials.[? if enforcement_acts = 1 : With the Enforcement Acts providing federal legal cover, these militias have a clearer mandate and better protection from legal challenges by hostile state courts. ?]
+
+@demobilize_state_militias
+title: Demobilize Southern Republican State Militias
+view-if: state_militia_formed = 1
+choose-if: occupation >= 1
+unavailable-subtitle: [? if occupation < 1: There is no federal presence to manage the transition. ?]
+on-arrival: state_militia_formed = 0; state_militia_strength = 0; Union_League_strength -= 10; Us_police_strength -= 5; moderate_support += 1; dem_relation += 3; rural_dem -= 1; resource += 1
+
+To avoid further escalation, we order the demobilization of <span style="color: #c00000;">**Republican**</span>-aligned militias in the South. This eases tensions but leaves our allies more exposed.
+
+@Deploy
+
+The Freedmen's Bureau reports mounting violence across the former Confederate states. Local militias and armed groups are terrorizing Black voters and <span style="color: #c00000;">**Republican**</span> officeholders. General Sherman warns that without a stronger federal presence, the new Southern governments cannot survive. How many troops will you commit?
+
+- @One
+- @Ten
+- @Fifty
+
+@One
+title: Send 1,000 soldiers to the South
+choose-if: occupation >= 2 and army_loyalty >= 0.6 and army_strength >= 1
+unavailable-subtitle: [? if occupation < 2: Full federal occupation is required. ?][? if army_loyalty < 0.6: The army is too unreliable. ?][? if army_strength < 1: The army is too depleted. ?]
+on-arrival: {!
+    Q.army_strength -= 1;
+    Q.South_army_strength += Q.enforcement_acts ? 2 : 1;
+    Q.army_militancy += 0.1;
+    Q.kkk_strength *= Q.enforcement_acts ? 0.93 : 0.95;
+    Q.kkk_militancy -= 0.01;
+    Q.Union_League_strength += 1;
+    Q.rural_dem += 1;
+    Q.unemployed_dem += 1;
+    Q.dem_relation -= 1;
+    Q.freedmen_rep += Q.enforcement_acts ? 2 : 1;
+!}
+
+A modest contingent of federal soldiers boards the southbound trains.[? if enforcement_acts = 1 : With clear legal authority behind the deployment, local commanders have fewer doubts about their mandate. ?]
+
+@Ten
+title: Send 10,000 soldiers to the South
+choose-if: occupation >= 2 and army_loyalty >= 0.6 and army_strength >= 10
+unavailable-subtitle: [? if occupation < 2: Full federal occupation is required. ?][? if army_loyalty < 0.6: The army is too unreliable. ?][? if army_strength < 10: The army is too depleted for a deployment of this size. ?]
+on-arrival: {!
+    Q.army_strength -= 10;
+    Q.South_army_strength += Q.enforcement_acts ? 14 : 10;
+    Q.army_militancy += 0.25;
+    Q.kkk_strength *= Q.enforcement_acts ? 0.80 : 0.85;
+    Q.kkk_militancy -= 0.02;
+    Q.Union_League_strength += 3;
+    Q.rural_dem += 2;
+    Q.unemployed_dem += 2;
+    Q.dem_relation -= 4;
+    Q.freedmen_rep += Q.enforcement_acts ? 5 : 3;
+!}
+
+Ten thousand soldiers are ordered south by rail and river. <span style="color: #c00000;">**Republican**</span> governors have been notified and the Bureau is coordinating with local commanders on where the need is greatest.[? if enforcement_acts = 1 : Soldiers now arrive with federal arrest authority behind them, not just rifles. ?]
+
+@Fifty
+title: Send 50,000 soldiers to the South
+choose-if: occupation >= 2 and army_loyalty >= 0.6 and army_strength >= 50
+unavailable-subtitle: [? if occupation < 2: Full federal occupation is required. ?][? if army_loyalty < 0.6: The army is too unreliable. ?][? if army_strength < 50: The army is too depleted for a deployment of this scale. ?]
+on-arrival: {!
+    Q.army_strength -= 50;
+    Q.South_army_strength += Q.enforcement_acts ? 65 : 50;
+    Q.army_militancy += 0.5;
+    Q.kkk_strength *= Q.enforcement_acts ? 0.68 : 0.75;
+    Q.kkk_militancy -= 0.15;
+    Q.Union_League_strength += 6;
+    Q.Union_League_militancy += 0.04;
+    Q.rural_dem += 4;
+    Q.unemployed_dem += 4;
+    Q.dem_relation -= 10;
+    Q.freedmen_rep += Q.enforcement_acts ? 9 : 6;
+!}
+
+Fifty thousand soldiers are mobilized for the South, the largest federal deployment since the war's end. The order is given. The army moves.[? if enforcement_acts = 1 : They go south not merely as an occupying force but as the arm of federal law, with court orders and arrest warrants alongside their rifles. ?]

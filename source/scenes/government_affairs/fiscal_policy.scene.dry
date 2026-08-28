@@ -1,0 +1,127 @@
+title: Fiscal Policy
+new-page: true
+is-card: true
+tags: cotus_affairs, cabinet
+on-arrival: fiscal_policy_timer += 6; month_actions += 1
+view-if: rep_majority = 1 and fiscal_policy_timer = 0
+card-image: img/portraits/McCulloch.png
+go-to: fiscal_menu
+
+= Fiscal Policy
+
+Federal fiscal policy involves questions of taxation and tariffs. These decisions affect economic growth, class relations, and the ability to fund Reconstruction and veterans’ benefits.
+
+@fiscal_menu
+
+Upper-income tax rates: [+ upper_tax_rates : taxation +]
+
+Lower-income tax rates: [+ lower_tax_rates : taxation +]
+
+- @raise_rich: Increase taxes on the rich.
+- @raise_poor
+- @raise_overall: Increase overall taxes.
+- @cut_rich
+- @cut_poor
+- @cut_overall: Cut overall taxes.
+- @raise_progressive: Make the tax system more progressive by raising taxes on the rich and cutting them for the poor.
+- @regressive
+- @tariffs
+- @root: Do not change the tax system.
+- @easy_discard
+- @cancel_advisor_action
+
+@raise_progressive
+subtitle: Keeps revenue neutral. [? if lower_tax_rates < -5 : Poor tax rates are too low to cut. ?] [? if upper_tax_rates > 5 : Wealthy tax rates are too high to raise. ?]
+choose-if: lower_tax_rates >= -5 and upper_tax_rates <= 5
+on-arrival: freemen_rep += 6*(1-dissent); middle_class_rep -= 4; rural_rep -= 4; conservative_dissent += 1 if moderate_strength > 30; moderate_strength -= 4; upper_tax_rates += 1; lower_tax_rates -= 1; capital_strike_progress += 1; capital_strike_progress += 1 if upper_tax_rates > 1; radical_strength += 1
+
+Progressive taxation builds support among freedmen and laborers, but threatens elite interests and may provoke economic retaliation.
+
+@raise_rich
+subtitle: +2 budget
+unavailable-subtitle: Tax ceiling reached.
+choose-if: upper_tax_rates <= 5
+on-arrival: upper_tax_rates += 1; capital_strike_progress += 1; capital_strike_progress += 1 if upper_tax_rates > 1; freemen_rep += 4*(1-dissent); middle_class_rep -= 4; rural_rep -= 4; conservative_dissent += 1 if capital_strike_progress >= 5; budget += 2; inflation -= 0.6; economic_growth -= 0.4; radical_strength += 1; moderate_strength -= 2
+
+Raising taxes on elite funds government programs but reduces investment and angers the propertied classes.
+
+@raise_poor
+title: Raise consumption taxes (hurts the poor)
+subtitle: +2 budget
+unavailable-subtitle: Consumption tax limit reached.
+choose-if: lower_tax_rates <= 5
+on-arrival: budget += 2; workers_rep -= 4; radical_dissent += 1; lower_tax_rates += 1; workers_rep -= 5 if lower_tax_rates >= 2; liberal_dissent += 3
+
+Regressive taxes erode working-class support and stir unrest in Northern cities.
+
+@cut_overall
+subtitle: -3 budget
+unavailable-subtitle: Tax floor reached or insufficient funds.
+choose-if: budget >= 3 and upper_tax_rates >= -5 and lower_tax_rates >= -5
+on-arrival: budget -= 3; upper_tax_rates -= 1; lower_tax_rates -= 1; middle_class_rep += 5*(1-dissent); rural_rep += 4*(1-dissent); workers_rep += 3*(1-dissent); conservative_strength += 2; inflation += 1; economic_growth += 0.6
+
+General tax cuts appeal to most classes and boost economic growth, but at a cost to Reconstruction funding.
+
+@cut_poor
+title: Cut taxes on necessities
+subtitle: -2 budget
+unavailable-subtitle: Tax floor reached or insufficient funds.
+choose-if: budget >= 2 and lower_tax_rates >= -5
+on-arrival: budget -= 2; lower_tax_rates -= 1; workers_rep += 5*(1-dissent); inflation += 0.6; economic_growth += 0.4; radical_strength += 1
+
+Cutting consumption taxes helps the poor, boosts support from labor, and strengthens the <span style="color: #7A1F5C;">**Radical**</span> coalition.
+
+
+@cut_rich
+title: Cut elite property/income taxes
+subtitle: -2 budget
+unavailable-subtitle: Tax floor reached or insufficient funds.
+choose-if: budget >= 2 and upper_tax_rates >= -5
+on-arrival: budget -= 2; upper_tax_rates -= 1; middle_class_rep += 5*(1-dissent); rural_rep += 4*(1-dissent); inflation += 0.6; economic_growth += 0.4; conservative_strength += 1
+
+This tax relief pleases elites, but may spark unrest from those reliant on public services.
+
+@raise_overall
+subtitle: +3 budget
+unavailable-subtitle: Tax ceiling reached.
+choose-if: upper_tax_rates <= 5 and lower_tax_rates <= 5
+on-arrival: budget += 3; middle_class_rep -= 4; rural_rep -= 4; workers_rep -= 4; unemployed_dem += 1; lower_tax_rates += 1; upper_tax_rates += 1; inflation -= 1.1; economic_growth -= 0.6
+
+A general tax hike funds Reconstruction but alienates taxpayers across classes.
+
+@regressive
+title: Shift tax burden downward
+subtitle: Keeps revenue neutral. [? if upper_tax_rates < -5 : Elite tax floor reached. ?] [? if lower_tax_rates > 5 : Poor tax ceiling reached. ?]
+choose-if: lower_tax_rates <= 5 and upper_tax_rates >= -5
+on-arrival: workers_rep -= 6; middle_class_rep += 5*(1-dissent); rural_rep += 5*(1-dissent); conservative_strength += 2; upper_tax_rates -= 1; lower_tax_rates += 1; liberal_dissent += 5
+
+A regressive tax shift pleases landowners and businesses but enrages urban workers and freedmen.
+
+@tariffs
+title: Adjust tariffs instead
+
+Tariffs were a primary source of federal revenue. While they protect Northern industry, they increase consumer prices and inflame sectional tensions.
+
+Current tariff level: [+ tariffs : taxation +]
+
+- @raise_tariffs
+- @lower_tariffs
+- @fiscal_menu: Change domestic taxes instead of tariffs.
+- @root: Do not change tariffs or taxes.
+- @easy_discard
+
+@raise_tariffs
+title: Raise import tariffs
+subtitle: +2 budget. May prompt retaliation or reduce trade.
+choose-if: tariffs <= 5
+on-arrival: tariffs += 1; inflation += 0.5; unemployed += 1.5; budget += 2; workers_rep -= 5; freemen_rep -= 5; rural_rep += 4*(1-dissent); middle_class_rep += 3*(1-dissent); conservative_strength += 1; economic_growth -= 0.4
+
+Higher tariffs protect industry and agriculture but hurt workers and freedmen by raising prices.
+
+@lower_tariffs
+title: Lower import tariffs
+choose-if: budget >= 2 and tariffs > -5
+subtitle: -2 budget. [? if tariffs <= -5 : Already at free-trade baseline. ?]
+on-arrival: tariffs -= 1; budget -= 2; inflation -= 0.5; workers_rep += 4*(1-dissent); freemen_rep += 4*(1-dissent); rural_rep -= 5; middle_class_rep -= 3; economic_growth += 0.4; economic_expansion += 2
+
+Lower tariffs help urban laborers but hurt domestic agriculture and industry, especially in the Midwest and Upper South.

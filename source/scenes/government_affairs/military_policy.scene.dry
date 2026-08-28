@@ -1,0 +1,139 @@
+title: Military Policy
+new-page: true
+is-card: true
+tags: potus_affairs, cabinet
+on-arrival: military_policy_timer += 4; month_actions += 1
+view-if: sect_war_party = "R" and military_policy_timer <= 0
+card-image: img/portraits/Stanton.jpg
+go-to: Mil
+
+= Military Policy
+
+The Union Army remains one of the few instruments through which the federal government can enforce Reconstruction, civil rights, and order in the former Confederate states. Yet many officers still harbor sympathy for conservative causes, and the Army's presence is increasingly controversial. How should we direct our military policy?
+
+@Mil
+
+- @army: Focus on Army policy
+- @navy: Focus on Navy policy
+- @Popo: Shift Inwards
+
+
+@army
+go-to: Army
+
+@navy
+go-to: Navy
+
+@Popo
+go-to: Police
+
+@Army
+
+Even after Appomattox, the Army remains a decisive tool of national authority in the former Confederate states. Federal troops guard courthouses, oversee voter registration, and protect freedmen from white supremacist violence. But public opinion is divided. Some demand a more forceful hand against Southern resistance, while others insist on returning power to local governments and curbing military spending. Reformers within the <span style="color: #c00000;">**Republican**</span> Party argue that the officer corps must be purged of lingering Confederate sympathizers to make the Army a true instrument of Reconstruction.
+
+- @increase_funding: Increase military funding to strengthen federal enforcement in the South.
+- @decrease_funding: Reduce military spending in favor of civilian programs.
+- @reform: Reform the officer corps and enlistment to make the Army more loyal to Reconstruction ideals.
+- @root: Leave current military policy unchanged.
+- @easy_discard
+- @cancel_advisor_action
+
+@increase_funding
+subtitle: -1 budget
+choose-if: budget >= 1
+unavailable-subtitle: We do not have the budget.
+on-arrival: budget -= 1; PoliticalCostPenalty += 1; coalition_dissent -= 1 if coalition_dissent > 0; army_loyalty += 0.07 if army_loyalty < 1; army_strength += 20; radical_dissent += 3;  moderate_dissent += 2; conservative_strength += 5; conservative_dissent -= 3; dem_relation += 1; reconstruction_support += 1; economic_growth += 0.1
+
+The decision to increase funding for the Army reassures <span style="color: #B5651D;">**Conservative Republicans**</span> and <span style="color: #9D2933;">**Moderates**</span> who favor strong federal enforcement in the South. However, many <span style="color: #7A1F5C;">**Radical Republicans**</span> and anti-military factions view it as a betrayal of civilian primacy. European observers are wary of American military expansion during such a volatile time.
+
+@decrease_funding
+subtitle: +1 budget
+unavailable-subtitle: We still need some kind of standing army to protect the republic.
+choose-if: reichswehr_strength < 5
+on-arrival: budget += 1; dem_relation += 8; army_militancy -= 1; army_strength -= 20; kkk_strength += 15; kkk_militancy += 0.05; army_loyalty -= 0.05 if army_loyalty > 0; economic_growth -= 0.1
+
+With reduced funds, the Army scales back operations across the South. Though budget savings are welcomed, demobilization leads to arms disappearing and discharged soldiers joining violent ex-Confederate militias. Our grip on Southern states may weaken unless other enforcement measures are taken.
+
+@reform
+subtitle: -1 budget
+choose-if: budget >= 1 and army_loyalty < 1
+unavailable-subtitle: [? if budget < 1 : We do not have the budget. ?][? if army_loyalty >= 1 : The Army is already fully loyal to the government. ?]
+on-arrival: army_loyalty += 0.15; army_militancy -= 0.5 if army_loyalty < 0.5; budget -= 1; PoliticalCostPenalty += 1; dem_relation -= 5; pacifism += 1;
+
+Reforms are underway to democratize the Army. Officers with known Confederate sympathies are dismissed, and new recruitment targets the Unionist and freedmen communities. While progress is uneven, this marks a significant shift in the Army’s alignment with Reconstruction goals.
+
+Many <span style="color: #B5651D;">**Conservatives**</span> view this as the dangerous politicization of the military, and Democrats accuse us of provoking instability.
+
+@Navy
+
+The Navy played only a minor role in the Civil War's aftermath but remains essential for protecting American interests abroad. With European powers testing our resolve in the Caribbean, naval strength underpins the Monroe Doctrine. Meanwhile, some freedmen look to emigrate to Liberia or the Caribbean, requiring safe routes and patrols. Debates continue over whether to modernize the fleet or redirect resources entirely toward domestic Reconstruction efforts.
+
+- @increase_funding2: Increase funding for the Navy to enforce the Monroe Doctrine.
+- @decrease_funding2: Reduce funding for the Navy and focus on Reconstruction.
+- @reform2: Reform the Navy to modernize to be a match for other European powers.
+- @root: Leave current military policy unchanged.
+- @easy_discard
+- @cancel_advisor_action
+
+@increase_funding2
+subtitle: -1 budget
+choose-if: budget >= 1
+unavailable-subtitle: We do not have the budget.
+on-arrival: budget -= 1; PoliticalCostPenalty += 1; navy_strength += 20; economic_growth += 0.1; coalition_dissent -= 1 if coalition_dissent > 0; european_tension += 1; democrat_support -= 1; radical_republican_dissent += 2
+
+With a stronger fleet, we can better enforce the Monroe Doctrine, assert American influence in the Caribbean, and protect freedmen's emigration routes. However, critics argue that this diverts resources from urgent domestic needs.
+
+@decrease_funding2
+subtitle: +1 budget
+unavailable-subtitle: There is nothing left to cut.
+choose-if: navy_strength > 0
+on-arrival: budget += 1; navy_strength -= 20; european_relation -= 1; coalition_dissent += 1; reconstruction_support += 1
+
+Reallocating naval funds helps support schools, land offices, and the Freedmen’s Bureau. Some worry that weakening the Navy may invite European meddling or reduce America’s reach, but the people in the South see the federal presence more clearly at home.
+
+@reform2
+subtitle: -1 budget
+choose-if: budget >= 1 and navy_loyalty < 1
+unavailable-subtitle: [? if budget < 1 : We do not have the budget. ?][? if navy_loyalty >= 1 : The Navy is already fully loyal to the democratic government. ?]
+on-arrival: budget -= 1; PoliticalCostPenalty += 1; navy_loyalty += 0.15; navy_strength += 10; economic_growth += 0.05; european_relation += 1
+
+We implement reforms in naval education and promotion, ensuring officers are chosen by merit and loyalty to the Republic. We also retire some secessionist holdovers and begin investing in modern vessels.
+
+While some see this as a bold modernization effort, others fear it invites entanglements abroad when our focus should be on Reconstruction.
+
+@Police
+
+The internal security forces of the union help protect the nation from the nation's internal enemies.
+
+- @increase_funding3: Increase funding for the Police to enforce law and order.
+- @decrease_funding3: Reduce funding for the Police.
+- @reform3: Reform the Police to modernize to be a match for the crime syndidates and paramilitaries.
+- @root: Leave current military policy unchanged.
+- @easy_discard
+- @cancel_advisor_action
+
+@increase_funding3
+subtitle: -1 budget
+choose-if: budget >= 1
+unavailable-subtitle: We do not have the budget.
+on-arrival: budget -= 1; PoliticalCostPenalty += 1; Us_police_strength += 5; economic_growth += 0.1; Us_police_militancy += 0.01; democrat_support -= 1; radical_dissent += 2
+
+With a stronger force, we can better enforce law and order, and protect freedmen from attacks. However, critics argue that this is an invitations to tyranny.
+
+@decrease_funding3
+subtitle: +1 budget
+unavailable-subtitle: There is nothing left to cut.
+choose-if: Us_police_strength > 0
+on-arrival: budget += 1; Us_police_strength -= 5; Us_police_militancy -= 0.02; reconstruction_support += 1
+
+Reallocating naval funds helps support schools, land offices, and the Freedmen’s Bureau. Some worry that weakening the Navy may invite European meddling or reduce America’s reach, but the people in the South see the federal presence more clearly at home.
+
+@reform3
+subtitle: -1 budget
+choose-if: budget >= 1 and Us_police_loyalty < 1
+unavailable-subtitle: [? if budget < 1 : We do not have the budget. ?][? if Us_police_loyalty >= 1 : The Police is already fully loyal to the government. ?]
+on-arrival: budget -= 1; PoliticalCostPenalty += 1; Us_police_loyalty += 0.15; Us_police_loyalty += 4; economic_growth += 0.05;
+
+We implement reforms in naval education and promotion, ensuring officers are chosen by merit and loyalty to the Republic. We also retire some secessionist holdovers and begin investing in modern doctines and equipment.
+
+While some see this as a bold modernization effort, others fear it invites entanglements abroad when our focus should be on Reconstruction.
